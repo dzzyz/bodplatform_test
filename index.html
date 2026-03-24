@@ -1,0 +1,735 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KRAFTON BOD Platform</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    colors: {
+                        krafton: '#534AB7',
+                        kraftonDark: '#3A3289',
+                        kraftonLight: '#EAE8F7'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .slide-in-right { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans antialiased h-screen overflow-hidden">
+    <div id="root" class="h-full w-full"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        const IconChevronDown = ({ className }) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="6 9 12 15 18 9"/></svg>;
+        const IconChevronRight = ({ className }) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
+        const IconFileText = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>;
+        const IconSettings = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+        const IconClock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+        const IconShare = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>;
+        const IconX = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const IconCheck = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+
+        const DEFAULT_AGENDAS = [
+            { id:1, number:"1-1", titleDraft:"CEO Message: 전략 방향성", section:"I. Company Strategy & Core Business", type:"보고/공유", dri:"김창한", sl:"강재형", status:"🟢",
+              content: {
+                title: "CEO Message: '26년 전략 방향성 Update",
+                governingMessage: "크래프톤의 Core인 게임을 토대로, Franchise IP 확장과 AI 기반 미래혁신 선도",
+                bullets: ["작고 빠른 도전 및 Scale-up을 통해 장기 PLC 가능 Franchise IP 확보", "게임제작/서비스로 축적된 역량을 활용한 신사업 기회 창출", "'29년 전사 매출 7조원, 기업가치 2배 목표 달성을 위한 Franchise IP 전략 지속추진"],
+                templateType: "text-only", kpis: [{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true}], tableColumns: ["구분","'25년 실적","'26년 계획","전년비 %"], tableRows: [["","","",""],["","","",""],["","","",""]],
+                extraText: "'26년 1월 KLT Recap에서 전략 방향성을 재정립했습니다. 핵심은 게임이라는 본업을 강화하면서 IP 확장을 통한 성장입니다.",
+                narrative: { background:"'26년 1월 KLT Recap에서 전략 방향성을 재정립했습니다.", performance:"PUBG IP Franchise는 안정적 수익 구조를 유지하고 있습니다.", issues:"신규 IP 확보 속도가 중장기 목표 대비 다소 느린 점이 주요 과제입니다.", nextSteps:"상반기 중 신작 2종 출시 및 외부 IP 발굴 파이프라인 확대를 추진합니다.", proposal:"전략 방향성에 대한 이사회의 의견과 피드백을 요청드립니다." }
+              },
+              history: [{ version:1, savedAt:"2026.03.20 10:00", savedBy:"실무진", note:"초안 작성 완료", snapshot:{} }]
+            },
+            { id:2, number:"2-5", titleDraft:"PUBG IP Franchise: '25년 실적", section:"I. Company Strategy & Core Business", type:"보고/공유", dri:"배동근", sl:"황동경", status:"🟡", 
+              content:{ title:"", governingMessage:"", bullets:["","",""], templateType:"kpi-table", kpis:[{label:"매출",value:"2.79조",delta:"-3%",isPositive:false},{label:"손익",value:"1.90조",delta:"+0.3%",isPositive:true},{label:"PC A.MAU",value:"17.2M",delta:"+9.6%",isPositive:true},{label:"BGMI A.DAU",value:"10.0M",delta:"-6.7%",isPositive:false}], tableColumns:["구분","'25년 실적","'26년 계획","전년비 %"], tableRows:[["PUBG IP 매출","27,921억","31,507억","+13%"],["손익","18,950억","20,500억","+8%"],["PC A.MAU","17.2M","18.0M","+4.7%"],["BGMI A.DAU","10.0M","11.0M","+10.3%"]], extraText:"", narrative:{ background:"", performance:"", issues:"", nextSteps:"", proposal:"" } }, history:[] },
+            { id:3, number:"1-4", titleDraft:"(사전공유) 인도 크리켓 IPL팀 투자", section:"II. Emerging Market & Growth", type:"사전공유", dri:"손현일", sl:"어창선", status:"🔴", content:{ title:"", governingMessage:"", bullets:["","",""], templateType:"kpi-table", kpis:[{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true}], tableColumns:["구분","'25년 실적","'26년 계획","전년비 %"], tableRows:[["","","",""],["","","",""],["","","",""]],extraText:"", narrative:{ background:"", performance:"", issues:"", nextSteps:"", proposal:"" } }, history:[] },
+            { id:4, number:"5", titleDraft:"'26년 예산 [승인사항 2]", section:"III. Financial", type:"승인사항", dri:"배동근", sl:"황동경", status:"🔴", content:{ title:"", governingMessage:"", bullets:["","",""], templateType:"kpi-table", kpis:[{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true}], tableColumns:["구분","'25년 실적","'26년 계획","전년비 %"], tableRows:[["","","",""],["","","",""],["","","",""]],extraText:"", narrative:{ background:"", performance:"", issues:"", nextSteps:"", proposal:"" } }, history:[] },
+            { id:5, number:"2", titleDraft:"'26년 인력계획(안) [승인사항 6]", section:"IV. Company & People", type:"승인사항", dri:"한소영", sl:"김성우", status:"🔴", content:{ title:"", governingMessage:"", bullets:["","",""], templateType:"kpi-table", kpis:[{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true},{label:"",value:"",delta:"",isPositive:true}], tableColumns:["구분","'25년 실적","'26년 계획","전년비 %"], tableRows:[["","","",""],["","","",""],["","","",""]],extraText:"", narrative:{ background:"", performance:"", issues:"", nextSteps:"", proposal:"" } }, history:[] }
+        ];
+
+        const renderBold = (text) => {
+            if (!text) return null;
+            const parts = text.split(/(\*\*.*?\*\*)/g);
+            return parts.map((part, i) => 
+                part.startsWith('**') && part.endsWith('**') 
+                ? <strong key={i} className="font-extrabold">{part.slice(2, -2)}</strong> 
+                : part
+            );
+        };
+
+        const ToggleSection = ({ title, children, defaultOpen = false, isWorking = false }) => {
+            const [isOpen, setIsOpen] = useState(defaultOpen);
+            return (
+                <div className={`border border-gray-200 rounded-2xl bg-white overflow-hidden shadow-sm mb-4 transition-all ${isWorking ? 'border-l-4 border-l-krafton' : ''}`}>
+                    <button onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between p-5 bg-white hover:bg-gray-50 transition-colors text-left">
+                        <h3 className="font-bold text-gray-800 text-[15px]">{title}</h3>
+                        <div className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}><IconChevronDown className="text-gray-400" /></div>
+                    </button>
+                    {isOpen && (
+                        <div className="p-6 pt-0 text-[15px] text-gray-700 leading-relaxed whitespace-pre-line border-t border-transparent">
+                            <div className="pt-4 border-t border-gray-100 font-medium">
+                                {children}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const Toast = ({ message, show }) => (
+            show ? (
+                <div className="fixed bottom-8 right-8 bg-gray-900 text-white px-6 py-3 rounded-xl shadow-2xl font-bold flex items-center gap-2 fade-in z-50">
+                    <IconCheck /> {message}
+                </div>
+            ) : null
+        );
+
+        const HistoryPanel = ({ history, onRollback, onClose }) => (
+            <div className="w-80 bg-white border-l border-gray-200 h-full flex flex-col shrink-0 slide-in-right z-30 shadow-2xl absolute right-0 top-16">
+                <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
+                    <h2 className="font-bold text-gray-900 flex items-center gap-2"><IconClock /> 히스토리 내역</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-700 p-1 rounded hover:bg-gray-200"><IconX /></button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+                    {(history || []).slice().reverse().map((h, i) => (
+                        <div key={i} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm hover:border-krafton transition-colors">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="text-xs font-bold text-krafton bg-kraftonLight px-2 py-0.5 rounded">v{h.version}</span>
+                                <span className="text-[11px] text-gray-400 font-medium">{h.savedAt}</span>
+                            </div>
+                            <div className="text-[13px] font-bold text-gray-800 mb-1">{h.note}</div>
+                            <div className="text-[11px] text-gray-500 mb-3">by {h.savedBy}</div>
+                            <button 
+                                disabled={i === 0}
+                                onClick={() => onRollback(h.snapshot)} 
+                                className={`w-full py-1.5 rounded text-xs font-bold transition-all ${i===0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'border border-gray-300 hover:bg-gray-50 text-gray-700'}`}>
+                                이 버전으로 되돌리기
+                            </button>
+                        </div>
+                    ))}
+                    {(!history || history.length === 0) && (
+                        <div className="text-sm text-gray-400 text-center mt-10 font-bold">기록된 히스토리가 없습니다.</div>
+                    )}
+                </div>
+            </div>
+        );
+
+        const ShareModal = ({ agendaId, onClose }) => {
+            const [copied, setCopied] = useState(false);
+            const link = `${window.location.origin}${window.location.pathname}?agenda=${agendaId}&mode=dri`;
+            
+            const handleCopy = () => {
+                navigator.clipboard.writeText(link);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 fade-in backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-[520px] shadow-2xl overflow-hidden">
+                        <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50 relative">
+                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2"><IconShare /> 안건 공유</h2>
+                            <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full text-gray-400"><IconX /></button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            <div>
+                                <label className="block text-xs font-extrabold text-gray-500 uppercase mb-2">공유 링크</label>
+                                <div className="flex border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 ring-krafton/20">
+                                    <input readOnly value={link} className="flex-1 bg-gray-50 px-4 py-2 text-sm text-gray-600 outline-none font-mono" />
+                                    <button onClick={handleCopy} className="px-5 font-bold text-sm bg-krafton text-white hover:bg-kraftonDark transition-colors">
+                                        {copied ? '복사됨 ✓' : '링크 복사'}
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-extrabold text-gray-500 uppercase mb-3">공유 대상 선택</label>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-3 p-3 border border-krafton bg-kraftonLight/20 rounded-xl cursor-pointer">
+                                        <input type="radio" name="shareMode" defaultChecked className="text-krafton w-4 h-4" />
+                                        <div className="text-sm">
+                                            <div className="font-bold text-kraftonDark">DRI 검토 (수정 가능)</div>
+                                            <div className="text-gray-500 text-xs mt-0.5">히스토리가 기록되며 협업 편집이 가능합니다.</div>
+                                        </div>
+                                    </label>
+                                    <label className="flex items-center gap-3 p-3 border border-gray-200 hover:bg-gray-50 rounded-xl cursor-pointer">
+                                        <input type="radio" name="shareMode" className="text-krafton w-4 h-4" />
+                                        <div className="text-sm">
+                                            <div className="font-bold text-gray-700">이사회 뷰 (읽기 전용)</div>
+                                            <div className="text-gray-500 text-xs mt-0.5">최종 결과물만 열람 가능한 모드입니다.</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-extrabold text-gray-500 uppercase mb-2">메모 (선택사항)</label>
+                                <textarea className="w-full border border-gray-300 rounded-lg p-3 text-sm outline-none focus:border-krafton resize-none" rows="2" placeholder="검토 부탁드립니다..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const BoardView = ({ base, cbSetWorking }) => {
+            const data = base.content;
+            const [activeTab, setActiveTab] = useState('narrative');
+            if (!data || !data.title) {
+                return (
+                    <div className="h-full flex flex-col items-center justify-center bg-gray-50">
+                        <div className="text-gray-400 mb-4"><IconFileText /></div>
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">아직 제출된 내용이 없습니다.</h2>
+                        <button onClick={cbSetWorking} className="bg-white border border-gray-300 px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors">실무진 뷰로 전환하여 작성하기</button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex flex-col h-full bg-white relative">
+                    <div className="shrink-0 px-10 border-b border-gray-200 relative" style={{ height: '65vh' }}>
+                        <div className="max-w-[1200px] mx-auto w-full h-full flex flex-col justify-center pt-4">
+                            <div className="flex items-end justify-between border-b-[2px] pb-3 mb-6 border-gray-200">
+                                <div className="flex items-baseline gap-3">
+                                    <span className="text-gray-400 font-extrabold text-[22px]">{base.number}.</span>
+                                    <h1 className="text-[32px] font-extrabold text-gray-900">{renderBold(data.title)}</h1>
+                                </div>
+                                <div className="bg-krafton text-white px-5 py-1.5 rounded-full flex items-center gap-3 text-[15px] font-bold shadow-sm mb-1">
+                                    <span>DRI {base.dri}</span><div className="w-px h-3.5 bg-white/40"></div><span>SL {base.sl}</span>
+                                </div>
+                            </div>
+                            <div className="border-l-[6px] border-krafton pl-4 mb-5">
+                                <p className="text-[20px] font-extrabold text-gray-900">{renderBold(data.governingMessage)}</p>
+                            </div>
+                            <div className="space-y-2 mb-8 pl-1">
+                                {data.bullets.map((b, i) => b && (
+                                    <div key={i} className="flex items-start gap-2.5 text-[16px] font-semibold text-gray-800">
+                                        <span className="text-[13px] mt-[3px] text-gray-400 shrink-0">⚫</span><span className="leading-relaxed">{renderBold(b)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex-1 mt-2 min-h-0 relative">
+                                {data.templateType === 'kpi-table' && (
+                                    <div className="grid grid-cols-12 gap-8 items-start">
+                                        <div className="col-span-4 grid grid-cols-2 gap-4">
+                                            {data.kpis.map((kpi, i) => kpi.label && (
+                                                <div key={i} className="bg-white border border-gray-200 shadow-sm rounded-xl p-4">
+                                                    <div className="text-[12px] font-bold text-gray-500 uppercase mb-2">{kpi.label}</div>
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-[28px] font-extrabold tracking-tight">{kpi.value}</span>
+                                                        {kpi.delta && <span className={`text-[13px] font-bold w-fit px-1.5 py-0.5 rounded ${kpi.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>{kpi.delta}</span>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="col-span-8 overflow-hidden rounded-lg border border-gray-200">
+                                            <table className="w-full text-left text-[15px]">
+                                                <thead className="bg-[#534AB7] text-white text-[14px]">
+                                                    <tr>{(data.tableColumns||[]).map((c, i) => <th key={i} className={`px-4 py-2.5 font-bold ${i>0?'text-right':''}`}>{c}</th>)}</tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {(data.tableRows||[]).map((r, i) => r[0] && (
+                                                        <tr key={i} className="hover:bg-gray-50 text-gray-800">
+                                                            {r.map((c, j) => <td key={j} className={`px-4 py-3 ${j===0?'font-bold':`text-right font-semibold ${j===3?(c.startsWith('+')?'text-emerald-600':'text-rose-600'):''}`}`}>{c}</td>)}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                                {data.templateType === 'text-only' && (
+                                    <div className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-line bg-gray-50 p-6 rounded-2xl border border-gray-200 h-full overflow-y-auto scrollbar-thin">
+                                        {renderBold(data.extraText)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto bg-gray-50 w-full relative">
+                        <div className="max-w-[1200px] mx-auto py-10 px-10 pb-32">
+                            <div className="flex border-b border-gray-200 mb-8 bg-white rounded-t-2xl shadow-sm px-4 pt-4 shrink-0">
+                                <button
+                                    onClick={() => setActiveTab('narrative')}
+                                    className={`px-6 py-4 font-bold text-[16px] flex items-center gap-2 border-b-[3px] transition-colors ${activeTab === 'narrative' ? 'border-krafton text-krafton' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    📖 Narrative
+                                    <span className="bg-red-50 text-red-500 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">●필독</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('appendix')}
+                                    className={`px-6 py-4 font-bold text-[16px] flex items-center gap-2 border-b-[3px] transition-colors ${activeTab === 'appendix' ? 'border-krafton text-krafton' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                                >
+                                    📎 Appendix
+                                    <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">참고</span>
+                                </button>
+                            </div>
+
+                            {activeTab === 'narrative' && (
+                                <div className="space-y-4 fade-in">
+                                    <ToggleSection title="① 배경 및 맥락" defaultOpen={true}>{renderBold(data.narrative?.background)}</ToggleSection>
+                                    <ToggleSection title="② 주요 성과 및 이슈">{renderBold(data.narrative?.performance)}</ToggleSection>
+                                    <ToggleSection title="③ 핵심 쟁점">{renderBold(data.narrative?.issues)}</ToggleSection>
+                                    <ToggleSection title="④ 다음 단계" defaultOpen={true}>{renderBold(data.narrative?.nextSteps)}</ToggleSection>
+                                    
+                                    <div className="mt-12 bg-[#EEEDF8] p-8 rounded-[24px] border border-krafton/20 shadow-sm relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-2 h-full bg-krafton"></div>
+                                        <h3 className="text-lg font-extrabold text-kraftonDark mb-4">💬 본 회의 논의 제안</h3>
+                                        <p className="text-[15px] text-gray-800 font-semibold whitespace-pre-line leading-relaxed">{renderBold(data.narrative?.proposal)}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'appendix' && (
+                                <div className="bg-gray-50 rounded-2xl p-10 flex flex-col items-center justify-center text-center fade-in text-gray-400">
+                                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-gray-300 shadow-sm mb-4">
+                                        <IconFileText />
+                                    </div>
+                                    <h3 className="font-bold text-lg mb-2">Appendix 자료는 실무진 뷰에서 추가할 수 있습니다.</h3>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        const WritingGuidePanel = ({ guideOpen, setGuideOpen }) => {
+            const guides = [
+                { id: 1, title: '① 배경 및 맥락 작성법', content: '안건 상정에 이르게 된 배경과 현재의 맥락을 간결하게 설명합니다.' },
+                { id: 2, title: '② 주요 성과 및 이슈', content: '핵심 수치를 포함하여 Objective 달성 경과를 객관적으로 서술하세요.' },
+                { id: 3, title: '③ 핵심 쟁점', content: '가장 논의가 필요한 리스크 혹은 의사결정 사항을 병렬식으로 나열합니다.' },
+                { id: 4, title: '④ 다음 단계', content: '이사회 이후의 실행 계획과 마일스톤을 기재합니다.' },
+            ];
+            const [openStates, setOpenStates] = useState(guides.map(() => true));
+
+            const toggleCard = (idx) => {
+                let n = [...openStates];
+                n[idx] = !n[idx];
+                setOpenStates(n);
+            };
+
+            if (!guideOpen) {
+                return (
+                    <div onClick={() => setGuideOpen(true)} className="bg-[#FAFAF9] border-l border-gray-100 w-[32px] h-full flex flex-col items-center justify-center cursor-pointer hover:bg-kraftonLight/30 shrink-0 z-20 transition-colors shadow-sm relative group text-gray-400 hover:text-krafton">
+                        <span className="text-[11px] font-bold tracking-wider whitespace-nowrap" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}>
+                            ✍️ 작성 가이드
+                        </span>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="w-[280px] h-full bg-[#FAFAF9] border-l border-gray-100 flex flex-col shrink-0 z-20 shadow-[0_0_15px_-5px_rgba(0,0,0,0.05)] transition-all">
+                    <div className="flex items-center justify-between p-4 px-5 border-b border-gray-100 shrink-0 bg-white shadow-sm">
+                        <span className="font-extrabold text-[#3A3289] text-[13px] flex items-center gap-1.5">✍️ 작성 가이드</span>
+                        <button onClick={() => setGuideOpen(false)} className="text-gray-400 hover:text-krafton text-[12px] font-bold px-1 py-0.5 rounded hover:bg-gray-100 transition-colors">&gt;&gt;</button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+                        {guides.map((g, idx) => (
+                            <div key={g.id} className="bg-white border text-[13px] border-gray-200 rounded-xl overflow-hidden shadow-sm transition-all hover:border-gray-300 flex flex-col">
+                                <div onClick={() => toggleCard(idx)} className="flex items-center justify-between px-3.5 py-3 bg-gray-50/50 border-b border-transparent cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <span className="font-extrabold text-gray-800 tracking-tight text-[12.5px] leading-tight">{g.title}</span>
+                                    <span className="text-[10px] text-gray-300">{openStates[idx] ? '▼' : '▶'}</span>
+                                </div>
+                                {openStates[idx] && <div className="p-3.5 pt-2 bg-white text-gray-600 leading-relaxed text-[12px] border-t border-gray-50">{g.content}</div>}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-3 border-t border-gray-100 bg-[#FAFAF9] text-center shrink-0 flex gap-4 justify-center">
+                        <button onClick={() => setOpenStates(guides.map(() => false))} className="text-[11px] font-bold text-gray-400 hover:text-krafton underline">모두 접기</button>
+                        <button onClick={() => setOpenStates(guides.map(() => true))} className="text-[11px] font-bold text-gray-400 hover:text-krafton underline">모두 펼치기</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const WorkingForm = ({ base, d, setD, onSave, onSaveTemp, onShare, onToggleHistory, isDriMode }) => {
+            const [expandedNarrative, setExpandedNarrative] = useState(false);
+            const [activeTab, setActiveTab] = useState('narrative');
+            const [guideOpen, setGuideOpen] = useState(true);
+            return (
+                <div className="flex h-full w-full bg-[#f4f4f7] overflow-hidden">
+                    <div className="flex-1 flex flex-col h-full relative min-w-0">
+                        <div className={`shrink-0 text-white py-2 px-10 text-sm font-bold flex justify-between items-center ${isDriMode ? 'bg-amber-600' : 'bg-[#26215C]'}`}>
+                            <span className="flex items-center gap-2">
+                                {isDriMode ? '👀 DRI 검토 모드 — 수정 사항은 히스토리에 기록됩니다' : '🔧 실무진 작업 화면 — 이사회 구성원에게 공개되지 않습니다'}
+                            </span>
+                            <div className="text-[11px] font-semibold opacity-80">마지막 수정: 방금 전</div>
+                        </div>
+
+                        <div className={`shrink-0 px-10 pt-6 pb-2 border-b border-gray-200 bg-white flex flex-col relative shadow-sm z-10 transition-all duration-300`} style={expandedNarrative ? {paddingTop:'12px',paddingBottom:'12px'} : { height: '65vh' }}>
+                            <div className="max-w-[1200px] mx-auto w-full h-full flex flex-col">
+                                {expandedNarrative ? (
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3 w-2/3">
+                                            <span className="text-gray-400 font-extrabold text-[18px]">{base.number}.</span>
+                                            <span className="text-[18px] font-extrabold text-gray-900 truncate">{d.title || base.titleDraft}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="bg-[#f0effa] text-krafton px-4 py-1.5 rounded-full flex items-center gap-2 text-[12px] font-bold shadow-inner shrink-0">
+                                                <span>DRI {base.dri}</span><div className="w-px h-3 bg-krafton/30"></div><span>SL {base.sl}</span>
+                                            </div>
+                                            <button onClick={() => setExpandedNarrative(false)} className="text-[11px] font-bold text-gray-400 hover:text-gray-700 underline">▼ Hero 영역 펼치기</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex items-end justify-between border-b-[2px] pb-3 mb-6 border-gray-200">
+                                            <div className="flex items-baseline gap-3 w-2/3">
+                                                <span className="text-gray-400 font-extrabold text-[22px]">{base.number}.</span>
+                                                <input className="flex-1 text-[32px] font-extrabold text-gray-900 border-b border-transparent hover:border-gray-200 focus:border-krafton outline-none bg-transparent transition-colors py-1 placeholder-gray-300"
+                                                       value={d.title} onChange={e=>setD({...d,title:e.target.value})} placeholder={base.titleDraft} />
+                                            </div>
+                                            <div className="bg-[#f0effa] text-krafton px-5 py-1.5 rounded-full flex items-center gap-3 text-[15px] font-bold shadow-inner">
+                                                <span>DRI {base.dri}</span><div className="w-px h-3.5 bg-krafton/30"></div><span>SL {base.sl}</span>
+                                            </div>
+                                        </div>
+                                        <div className="mb-4">
+                                            <input className="w-full text-[20px] font-extrabold border-l-[6px] border-krafton pl-4 py-2 outline-none bg-gray-50 focus:bg-white rounded hover:bg-gray-100 transition-colors placeholder-gray-400"
+                                                   value={d.governingMessage} onChange={e=>setD({...d,governingMessage:e.target.value})} placeholder="핵심 결론을 한 문장으로 — 수치 포함" />
+                                        </div>
+                                        <div className="space-y-2 mb-6 pl-1">
+                                            {d.bullets.map((b,i) => (
+                                                <div key={i} className="flex items-center gap-2.5">
+                                                    <span className="text-[13px] text-gray-400">⚫</span>
+                                                    <input className="flex-1 text-[16px] font-semibold bg-gray-50 focus:bg-white outline-none px-3 py-1.5 rounded hover:bg-gray-100 transition-colors border border-transparent focus:border-krafton/30"
+                                                           value={b} onChange={e=>{let n=[...d.bullets];n[i]=e.target.value;setD({...d,bullets:n})}} placeholder={`Bullet 포인트 ${i+1}`} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="flex-1 flex flex-col min-h-0 bg-[#fafafa] rounded-2xl border border-gray-200 p-5 shadow-inner">
+                                            <div className="flex gap-2 mb-4 shrink-0">
+                                                {['kpi-table','text-only','table-only'].map(t => (
+                                                    <button key={t} onClick={()=>setD({...d,templateType:t})} className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-colors ${d.templateType===t?'bg-krafton text-white shadow-sm':'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+                                                        {t==='kpi-table'?'📊 KPI + 표':t==='text-only'?'📝 텍스트만':'📋 표만'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="flex-1 overflow-auto w-full relative">
+                                                {d.templateType === 'kpi-table' && (
+                                                    <div className="grid grid-cols-12 gap-6 h-full">
+                                                        <div className="col-span-4 grid grid-cols-2 gap-3 pb-2">
+                                                            {d.kpis.map((kpi,i) => (
+                                                                <div key={i} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2">
+                                                                    <input className="text-[11px] font-bold text-gray-500 uppercase w-full outline-none border-b border-gray-100 pb-1 focus:border-krafton" value={kpi.label} onChange={e=>{let n=[...d.kpis];n[i]={...n[i],label:e.target.value};setD({...d,kpis:n})}} placeholder="KPI명" />
+                                                                    <input className="text-xl font-extrabold w-full outline-none" value={kpi.value} onChange={e=>{let n=[...d.kpis];n[i]={...n[i],value:e.target.value};setD({...d,kpis:n})}} placeholder="Value" />
+                                                                    <div className="flex gap-1 mt-auto">
+                                                                        <input className="text-[11px] font-bold w-full bg-gray-50 px-1 py-1 rounded outline-none" value={kpi.delta} onChange={e=>{let n=[...d.kpis];n[i]={...n[i],delta:e.target.value};setD({...d,kpis:n})}} placeholder="증감율" />
+                                                                        <button onClick={()=>{let n=[...d.kpis];n[i]={...n[i],isPositive:!n[i].isPositive};setD({...d,kpis:n})}} className={`px-2 py-0.5 rounded text-[10px] font-bold ${kpi.isPositive?'bg-emerald-100 text-emerald-700':'bg-rose-100 text-rose-700'}`}>{kpi.isPositive?'+':'-'}</button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="col-span-8 flex flex-col gap-2 h-full">
+                                                            <div className="grid gap-1 shrink-0" style={{gridTemplateColumns:`repeat(${(d.tableColumns||[]).length},1fr)`}}>
+                                                                {(d.tableColumns||[]).map((col,ci) => (
+                                                                    <input key={ci} className="bg-krafton text-white text-[12px] font-bold px-3 py-2 rounded text-center outline-none placeholder-white/50 focus:bg-kraftonDark"
+                                                                        value={col} onChange={e=>{const nc=[...d.tableColumns];nc[ci]=e.target.value;setD({...d,tableColumns:nc})}} placeholder={`컬럼 ${ci+1}`} />
+                                                                ))}
+                                                            </div>
+                                                            <div className="flex-1 overflow-y-auto space-y-1">
+                                                                {(d.tableRows||[]).map((row,ri) => (
+                                                                    <div key={ri} className="grid gap-1 items-center" style={{gridTemplateColumns:`repeat(${(d.tableColumns||[]).length},1fr) 28px`}}>
+                                                                        {row.map((cell,ci) => (
+                                                                            <input key={ci}
+                                                                                className={`border border-gray-200 rounded px-3 py-2 text-[13px] outline-none focus:border-krafton bg-white hover:bg-gray-50 ${ci===0?'font-bold text-gray-900':'text-right text-gray-700'} ${ci===(d.tableColumns||[]).length-1?(cell.startsWith('+')?'text-emerald-600 font-bold':cell.startsWith('-')?'text-rose-600 font-bold':''):''}`}
+                                                                                value={cell} onChange={e=>{const nr=d.tableRows.map((r,i)=>i===ri?r.map((c,j)=>j===ci?e.target.value:c):r);setD({...d,tableRows:nr})}}
+                                                                                placeholder={ci===0?'항목':'—'} />
+                                                                        ))}
+                                                                        <button onClick={()=>setD({...d,tableRows:d.tableRows.filter((_,i)=>i!==ri)})} className="w-6 h-6 rounded text-gray-300 hover:text-red-400 hover:bg-red-50 flex items-center justify-center text-[14px] font-bold shrink-0">×</button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <button onClick={()=>setD({...d,tableRows:[...(d.tableRows||[]),Array((d.tableColumns||[]).length).fill('')]})} className="w-full py-1.5 border border-dashed border-gray-300 rounded text-[12px] text-gray-400 hover:border-krafton hover:text-krafton transition-colors font-bold shrink-0">+ 행 추가</button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {d.templateType === 'text-only' && (
+                                                    <textarea className="w-full h-full p-5 border border-gray-200 rounded-xl outline-none resize-none bg-white text-[15px] leading-relaxed focus:border-krafton focus:ring-2 ring-krafton/20 shadow-sm"
+                                                              placeholder="상세 설명 텍스트를 자유롭게 입력하세요." value={d.extraText} onChange={e=>setD({...d,extraText:e.target.value})} />
+                                                )}
+                                                {d.templateType === 'table-only' && (
+                                                    <div className="flex flex-col gap-2 h-full w-full">
+                                                        <div className="flex gap-2 mb-2 items-center">
+                                                            <span className="text-[12px] text-gray-500 font-bold">컬럼 수:</span>
+                                                            <button onClick={()=>{if((d.tableColumns||[]).length>2)setD({...d,tableColumns:d.tableColumns.slice(0,-1),tableRows:d.tableRows.map(r=>r.slice(0,-1))})}} className="w-6 h-6 border rounded text-gray-500 hover:bg-gray-100 font-bold text-[13px]">−</button>
+                                                            <span className="text-[13px] font-bold text-gray-700">{(d.tableColumns||[]).length}</span>
+                                                            <button onClick={()=>{if((d.tableColumns||[]).length<6)setD({...d,tableColumns:[...(d.tableColumns||[]),''],tableRows:(d.tableRows||[]).map(r=>[...r,''])})}} className="w-6 h-6 border rounded text-gray-500 hover:bg-gray-100 font-bold text-[13px]">+</button>
+                                                        </div>
+                                                        <div className="grid gap-1 shrink-0" style={{gridTemplateColumns:`repeat(${(d.tableColumns||[]).length},1fr)`}}>
+                                                            {(d.tableColumns||[]).map((col,ci) => (
+                                                                <input key={ci} className="bg-krafton text-white text-[13px] font-bold px-4 py-2.5 rounded text-center outline-none placeholder-white/50 focus:bg-kraftonDark"
+                                                                    value={col} onChange={e=>{const nc=[...d.tableColumns];nc[ci]=e.target.value;setD({...d,tableColumns:nc})}} placeholder={`컬럼 ${ci+1}`} />
+                                                            ))}
+                                                        </div>
+                                                        <div className="flex-1 overflow-y-auto space-y-1">
+                                                            {(d.tableRows||[]).map((row,ri) => (
+                                                                <div key={ri} className="grid gap-1 items-center" style={{gridTemplateColumns:`repeat(${(d.tableColumns||[]).length},1fr) 28px`}}>
+                                                                    {row.map((cell,ci) => (
+                                                                        <input key={ci}
+                                                                            className={`border border-gray-200 rounded px-4 py-2.5 text-[14px] outline-none focus:border-krafton bg-white hover:bg-gray-50 ${ci===0?'font-bold text-gray-900':'text-right text-gray-700'} ${ci===(d.tableColumns||[]).length-1?(cell.startsWith('+')?'text-emerald-600 font-bold':cell.startsWith('-')?'text-rose-600 font-bold':''):''}`}
+                                                                            value={cell} onChange={e=>{const nr=d.tableRows.map((r,i)=>i===ri?r.map((c,j)=>j===ci?e.target.value:c):r);setD({...d,tableRows:nr})}}
+                                                                            placeholder={ci===0?'항목':'—'} />
+                                                                    ))}
+                                                                    <button onClick={()=>setD({...d,tableRows:d.tableRows.filter((_,i)=>i!==ri)})} className="w-6 h-6 rounded text-gray-300 hover:text-red-400 hover:bg-red-50 flex items-center justify-center text-[14px] font-bold shrink-0">×</button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <button onClick={()=>setD({...d,tableRows:[...(d.tableRows||[]),Array((d.tableColumns||[]).length).fill('')]})} className="w-full py-2 border border-dashed border-gray-300 rounded text-[13px] text-gray-400 hover:border-krafton hover:text-krafton transition-colors font-bold mt-2 shrink-0">+ 행 추가</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto bg-gray-50 px-10 py-10 w-full relative">
+                            <div className={`max-w-[1200px] mx-auto pb-32 transition-all duration-300 ${expandedNarrative?'space-y-6':'space-y-5'}`}>
+                                <div className="flex justify-between items-end mb-6">
+                                    <div className="flex border-b border-gray-200 bg-transparent shrink-0">
+                                        <button onClick={()=>setActiveTab('narrative')} className={`px-6 py-3 font-bold text-[16px] flex items-center gap-2 border-b-[3px] transition-colors ${activeTab==='narrative'?'border-krafton text-krafton':'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                                            📖 Narrative <span className="bg-red-50 text-red-500 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">●필독</span>
+                                        </button>
+                                        <button onClick={()=>setActiveTab('appendix')} className={`px-6 py-3 font-bold text-[16px] flex items-center gap-2 border-b-[3px] transition-colors ${activeTab==='appendix'?'border-krafton text-krafton':'border-transparent text-gray-400 hover:text-gray-600'}`}>
+                                            📎 Appendix <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">참고</span>
+                                        </button>
+                                    </div>
+                                    <button onClick={()=>setExpandedNarrative(!expandedNarrative)} className="text-[12px] font-bold text-gray-400 hover:text-krafton border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-kraftonLight/30 flex items-center gap-1.5 transition-colors mb-2">
+                                        {expandedNarrative?'✕ 축소':'⛶ 확장'}
+                                    </button>
+                                </div>
+
+                                {activeTab === 'narrative' && (
+                                    <div className="space-y-4 fade-in">
+                                        {[
+                                            {k:'background',label:'① 배경 및 맥락'},
+                                            {k:'performance',label:'② 주요 성과 및 이슈'},
+                                            {k:'issues',label:'③ 핵심 쟁점'},
+                                            {k:'nextSteps',label:'④ 다음 단계'}
+                                        ].map(({k,label}) => (
+                                            <div key={k} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm border-l-4 border-l-gray-300 focus-within:border-l-krafton transition-colors">
+                                                <label className="font-extrabold text-gray-800 mb-3 block text-[15px]">{label}</label>
+                                                <textarea className={`w-full bg-gray-50 border border-gray-200 rounded-lg p-4 outline-none focus:border-krafton focus:bg-white transition-all resize-none text-[14px] leading-relaxed ${expandedNarrative?'min-h-[160px]':'min-h-[100px]'}`}
+                                                        value={d.narrative[k]} onChange={e=>setD({...d,narrative:{...d.narrative,[k]:e.target.value}})} />
+                                            </div>
+                                        ))}
+                                        <div className="bg-[#EEEDF8] p-6 rounded-2xl border border-krafton/20 shadow-sm">
+                                            <label className="font-extrabold text-[#3A3289] mb-3 block text-[15px]">💬 본 회의 논의 제안</label>
+                                            <textarea className={`w-full bg-white border border-gray-300 rounded-lg p-4 outline-none focus:border-krafton transition-all resize-none text-[14px] ${expandedNarrative?'min-h-[160px]':'min-h-[100px]'}`}
+                                                    value={d.narrative.proposal} onChange={e=>setD({...d,narrative:{...d.narrative,proposal:e.target.value}})} />
+                                        </div>
+                                        <div className="text-xs text-gray-400 font-bold text-right pt-2">💡 힌트: **텍스트** 양 옆에 별표 두 개를 넣으면 강조(Bold) 처리됩니다.</div>
+                                    </div>
+                                )}
+
+                                {activeTab === 'appendix' && (
+                                    <div className="space-y-4 fade-in">
+                                        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm transition-colors border-l-4 border-l-gray-300 focus-within:border-l-krafton">
+                                            <label className="font-extrabold text-gray-800 mb-3 flex items-center gap-2 text-[15px]">
+                                                📎 연관 자료 요약 / Reference URL
+                                                <span className="text-[11px] font-medium text-gray-400">자유롭게 입력해주세요. 이사회 뷰에 노출됩니다.</span>
+                                            </label>
+                                            <textarea className={`w-full bg-gray-50 border border-gray-200 rounded-lg p-5 outline-none focus:border-krafton focus:bg-white transition-all resize-none text-[14px] leading-relaxed ${expandedNarrative?'min-h-[400px]':'min-h-[250px]'}`}
+                                                      placeholder="발표 중 참고할 추가 데이터, 레퍼런스 링크, 기타 보충 설명을 자유롭게 작성하세요."
+                                                      value={d.narrative.appendix||''} onChange={e=>setD({...d,narrative:{...d.narrative,appendix:e.target.value}})} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[900px] bg-white border border-gray-200 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] rounded-2xl p-4 flex justify-between items-center z-20">
+                            <div className="flex items-center gap-4 pl-2">
+                                <span className="text-[13px] font-bold text-gray-500">진행 상태</span>
+                                <select className="border-none bg-gray-100 rounded-lg px-3 py-2 text-[13px] font-bold text-gray-800 outline-none cursor-pointer hover:bg-gray-200"
+                                        value={base.status} onChange={e=>onSaveTemp(d,e.target.value)}>
+                                    <option value="🔴">🔴 작성중</option>
+                                    <option value="🟡">🟡 검토요청</option>
+                                    <option value="🟢">🟢 완료</option>
+                                </select>
+                                <button onClick={onToggleHistory} className="ml-4 text-[13px] font-bold text-gray-500 hover:text-krafton flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-kraftonLight/50"><IconClock /> 히스토리 패널</button>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <button onClick={onShare} className="text-gray-600 hover:bg-gray-100 flex items-center gap-2 border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-bold transition-all"><IconShare /> 공유</button>
+                                <button onClick={()=>onSaveTemp(d)} className="border border-krafton text-krafton px-5 py-2.5 rounded-xl text-sm font-bold bg-white hover:bg-kraftonLight transition-all">임시저장</button>
+                                <button onClick={()=>onSave(d)} className="bg-krafton text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-kraftonDark transition-all">✅ 제출하기 →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [agendas, setAgendas] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('bod_data');
+                    return saved ? JSON.parse(saved).agendas : DEFAULT_AGENDAS;
+                } catch { return DEFAULT_AGENDAS; }
+            });
+            const [viewMode, setViewMode] = useState('working');
+            const [selectedId, setSelectedId] = useState(1);
+            const [editDraft, setEditDraft] = useState(null);
+            const [showHistory, setShowHistory] = useState(false);
+            const [showShareModal, setShowShareModal] = useState(false);
+            const [toastMsg, setToastMsg] = useState('');
+            const [isDriMode, setIsDriMode] = useState(false);
+
+            useEffect(() => {
+                localStorage.setItem('bod_data', JSON.stringify({ agendas }));
+            }, [agendas]);
+
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('agenda') && params.get('mode') === 'dri') {
+                    setSelectedId(parseInt(params.get('agenda')));
+                    setViewMode('working');
+                    setIsDriMode(true);
+                }
+            }, []);
+
+            useEffect(() => {
+                const current = agendas.find(a => a.id === selectedId);
+                if (current) setEditDraft(JSON.parse(JSON.stringify(current.content)));
+                setShowHistory(false);
+            }, [selectedId, agendas]);
+
+            const showToast = (msg) => {
+                setToastMsg(msg);
+                setTimeout(() => setToastMsg(''), 2500);
+            };
+
+            const handleSave = (draft, customStatus, note = "초안 저장", isSubmit = false) => {
+                const current = agendas.find(a => a.id === selectedId);
+                const now = new Date().toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+                const newVersion = {
+                    version: (current.history?.length || 0) + 1,
+                    savedAt: now,
+                    savedBy: isDriMode ? "DRI" : "실무진",
+                    note: isSubmit ? "최종 제출" : note,
+                    snapshot: JSON.parse(JSON.stringify(draft))
+                };
+                
+                setAgendas(prev => prev.map(a => a.id === selectedId ? { 
+                    ...a, 
+                    status: customStatus || a.status,
+                    content: JSON.parse(JSON.stringify(draft)), 
+                    history: [...(a.history || []), newVersion] 
+                } : a));
+                showToast("안건이 저장되었습니다.");
+            };
+
+            const handleSubmit = (draft) => {
+                handleSave(draft, "🟡", "검토 요청 제출", true);
+            };
+
+            const currentBase = agendas.find(a => a.id === selectedId) || agendas[0];
+
+            return (
+                <div className="flex h-screen w-full bg-[#f4f4f7] overflow-hidden">
+                    <div className="w-[280px] bg-white border-r border-gray-200 h-full flex flex-col shrink-0 z-20 shadow-sm relative">
+                        <div className="p-6 pb-5 border-b border-gray-100 flex-shrink-0">
+                            <div className="font-extrabold text-[24px] text-krafton tracking-tight leading-none mb-1.5 flex items-center">
+                                KRAFTON <span className="text-gray-900 font-bold ml-1.5 text-xl">BOD</span>
+                            </div>
+                            <div className="text-[13px] font-bold text-gray-500">'26.02.09 정기이사회</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin">
+                            {['I. Company Strategy & Core Business', 'II. Emerging Market & Growth', 'III. Financial', 'IV. Company & People'].map(section => (
+                                <div key={section} className="flex flex-col">
+                                    <div className="text-gray-400 text-[10px] font-extrabold uppercase tracking-widest pl-1 mb-2">{section.split('. ')[0]}</div>
+                                    <div className="space-y-1.5">
+                                        {agendas.filter(a => a.section === section).map(a => {
+                                            const isActive = a.id === selectedId;
+                                            const hasContent = !!a.content?.title;
+                                            return (
+                                                <div key={a.id} onClick={() => setSelectedId(a.id)} className={`p-3.5 rounded-xl cursor-pointer transition-all border ${isActive ? 'bg-[#534AB7] text-white border-transparent shadow-md transform scale-[1.02]' : 'bg-white border-gray-100 hover:border-gray-300'}`}>
+                                                    <div className="flex justify-between items-center w-full mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${isActive?'bg-white/20 text-white':'bg-gray-100 text-gray-600'}`}>{a.type}</span>
+                                                            {hasContent && <div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]"></div>}
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            {a.history?.length > 0 && <span className={`text-[9px] font-bold ${isActive?'text-white/70':'text-gray-400'}`}>v{a.history.length}</span>}
+                                                            <span className="text-[11px]">{a.status}</span>
+                                                        </div>
+                                                    </div>
+                                                    <h3 className={`text-[12.5px] leading-snug line-clamp-2 ${isActive ? 'font-bold' : 'font-semibold text-gray-800'}`}>{a.titleDraft}</h3>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col h-full relative z-0 min-w-[900px] bg-white">
+                        <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 z-30 shadow-sm relative">
+                            <div className="flex border border-gray-200 rounded-lg overflow-hidden bg-gray-50 p-1 shadow-inner">
+                                <button onClick={() => setViewMode('working')} className={`px-5 py-1.5 text-sm font-bold rounded-md flex items-center gap-2 transition-colors ${viewMode === 'working' ? 'bg-[#534AB7] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>🔧 실무진 뷰</button>
+                                <button onClick={() => setViewMode('board')} className={`px-5 py-1.5 text-sm font-bold rounded-md flex items-center gap-2 transition-colors ${viewMode === 'board' ? 'bg-white border border-gray-300 text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>📋 이사회 뷰</button>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setShowHistory(!showHistory)} className={`px-3 py-1.5 text-xs font-bold rounded-lg border flex items-center gap-1.5 transition-all ${showHistory ? 'bg-kraftonLight text-krafton border-krafton tracking-tight' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}>
+                                    <IconClock /> 히스토리 {currentBase.history?.length > 0 && <span className="bg-krafton text-white px-1.5 rounded-full ml-1">{currentBase.history.length}</span>}
+                                </button>
+                                <div className="w-px h-5 bg-gray-200"></div>
+                                <div className="text-gray-400"><IconSettings /></div>
+                                <div className={`w-8 h-8 rounded-full bg-gradient-to-tr from-[#3A3289] to-[#534AB7] text-white flex items-center justify-center text-sm font-bold shadow hover:scale-105 cursor-pointer border border-white ${isDriMode ? 'bg-amber-600' : ''}`}>JB</div>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 flex overflow-hidden relative">
+                            <div className="flex-1 overflow-hidden relative">
+                                {viewMode === 'board' ? (
+                                    <BoardView base={currentBase} cbSetWorking={() => setViewMode('working')} />
+                                ) : (
+                                    editDraft && <WorkingForm base={currentBase} d={editDraft} setD={setEditDraft} onSave={handleSubmit} onSaveTemp={d => handleSave(d, currentBase.status, "임시저장")} onShare={() => setShowShareModal(true)} onToggleHistory={() => setShowHistory(!showHistory)} isDriMode={isDriMode} />
+                                )}
+                            </div>
+                            {showHistory && <HistoryPanel history={currentBase.history} onClose={() => setShowHistory(false)} onRollback={(snap) => { if(confirm('선택하신 버전으로 입력 품 데이터를 되돌리겠습니까?')) setEditDraft(JSON.parse(JSON.stringify(snap))); }} />}
+                        </div>
+                    </div>
+                    {showShareModal && <ShareModal agendaId={selectedId} onClose={() => setShowShareModal(false)} />}
+                    <Toast message={toastMsg} show={!!toastMsg} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
