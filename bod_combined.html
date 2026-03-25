@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>KRAFTON BOD Platform</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Pretendard',-apple-system,sans-serif;background:#f3f4f6}
+input,textarea,select,button{font-family:'Pretendard',sans-serif}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px}
+
+/* ─── Layout ─── */
+#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#topbar{height:48px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0;z-index:20}
+#main{display:flex;flex:1;overflow:hidden}
+#sidebar{width:210px;min-width:210px;background:#1a1a2e;color:#fff;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+#content{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* ─── Topbar ─── */
+.logo{font-size:14px;font-weight:700;color:#534AB7;letter-spacing:-.3px}
+.view-toggle{display:flex;background:#f3f4f6;border-radius:8px;padding:3px;gap:2px}
+.vtb{border:none;background:transparent;font-size:12px;padding:5px 14px;border-radius:6px;cursor:pointer;font-family:'Pretendard',sans-serif;color:#9ca3af;font-weight:500;transition:all .15s}
+.vtb.on{background:#fff;color:#534AB7;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.lang-toggle{display:flex;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden}
+.lb{border:none;background:transparent;font-size:11px;padding:4px 10px;cursor:pointer;font-family:'Pretendard',sans-serif;color:#9ca3af;transition:all .15s}
+.lb.on{background:#f9fafb;color:#374151;font-weight:500}
+.lb:disabled{opacity:.35;cursor:not-allowed}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.hist-btn{border:none;background:transparent;font-size:11px;color:#9ca3af;cursor:pointer;font-family:'Pretendard',sans-serif;display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;transition:all .15s}
+.hist-btn:hover{background:#f3f4f6;color:#534AB7}
+.hist-btn.on{background:#eeedfe;color:#534AB7}
+.hbadge{background:#534AB7;color:#fff;font-size:9px;font-weight:700;border-radius:99px;padding:1px 5px}
+.avatar{width:28px;height:28px;border-radius:50%;background:#534AB7;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* ─── Sidebar ─── */
+.sb-head{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sb-logo{font-size:14px;font-weight:700;color:#fff}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
+.toc{flex:1;overflow-y:auto;padding:8px 0}
+.toc-s{font-size:9px;color:rgba(255,255,255,.3);letter-spacing:.07em;text-transform:uppercase;padding:8px 14px 3px}
+.ti{display:flex;align-items:flex-start;gap:6px;padding:6px 12px;margin:1px 6px;border-radius:8px;cursor:pointer;transition:all .12s}
+.ti:hover{background:rgba(255,255,255,.07)}
+.ti.on{background:rgba(255,255,255,.13)}
+.td{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.25);flex-shrink:0;margin-top:5px}
+.ti.on .td{background:#534AB7}
+.ti-body{flex:1;min-width:0}
+.ti-type{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;display:inline-block;margin-bottom:3px}
+.ti-title{font-size:11px;color:rgba(255,255,255,.55);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ti.on .ti-title{color:rgba(255,255,255,.9);font-weight:500}
+.ti-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.status-dot{font-size:11px}
+.v-tag{font-size:9px;color:rgba(255,255,255,.25)}
+.green-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#4ade80;margin-right:3px;vertical-align:middle}
+.type-승인사항{background:#26215C;color:#c4b5fd}
+.type-보고공유{background:#0c447c;color:#93c5fd}
+.type-사전공유{background:#085041;color:#6ee7b7}
+.type-논의사항{background:#633806;color:#fcd34d}
+
+/* ─── Working View ─── */
+#workingView{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.w-banner{background:#26215C;color:rgba(255,255,255,.85);font-size:11px;padding:7px 20px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.status-sel{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.75);font-size:11px;border-radius:5px;padding:2px 7px;outline:none;cursor:pointer;font-family:'Pretendard',sans-serif}
+.w-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:24px 20px;gap:16px}
+/* PPT slide card */
+.slide-card{width:100%;max-width:960px;aspect-ratio:16/9;background:#fff;box-shadow:0 6px 32px rgba(0,0,0,.18);border-radius:4px;position:relative;display:flex;flex-direction:column;overflow:hidden}
+.slide-head{border-bottom:2.5px solid #1f2937;padding:20px 32px 10px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-shrink:0}
+.slide-title-input{font-size:clamp(14px,2.2vw,26px);font-weight:900;color:#111827;outline:none;background:transparent;border:none;flex:1;line-height:1.2;min-width:0}
+.slide-title-input::placeholder{color:#d1d5db;font-weight:700}
+.slide-dri-area{flex-shrink:0;display:flex;align-items:center;gap:6px;font-size:clamp(10px,1.2vw,14px)}
+.dri-label{font-weight:900;color:#111827}
+.sl-label{color:#6b7280}
+.dri-input{border:none;border-bottom:1px solid #d1d5db;outline:none;background:transparent;font-weight:900;color:#111827;font-size:clamp(11px,1.35vw,15px);font-family:'Pretendard',sans-serif;width:100px;text-align:center;padding-bottom:1px}
+.dri-input.sl{font-weight:400;color:#6b7280}
+.dri-input:focus{border-bottom-color:#534AB7}
+.dri-sep{color:#d1d5db;font-size:10px}
+.slide-body{flex:1;display:flex;flex-direction:column;padding:10px 32px 8px;min-height:0}
+.gm-wrap{border-left:5px solid #1f2937;padding-left:14px;margin-bottom:10px;flex-shrink:0}
+.gm-input{font-size:clamp(9px,1.35vw,16px);font-weight:700;color:#111827;outline:none;background:transparent;border:none;width:100%;line-height:1.35}
+.gm-input::placeholder{color:#d1d5db}
+.bullets{flex-shrink:0;display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.bullet-row{display:flex;align-items:center;gap:8px}
+.bullet-dot{width:6px;height:6px;border-radius:50%;background:#374151;flex-shrink:0}
+.bullet-input{flex:1;font-size:clamp(8px,1.1vw,13px);color:#374151;outline:none;background:transparent;border:none;border-bottom:1px solid transparent}
+.bullet-input:focus{border-bottom-color:#e5e7eb}
+.bullet-input::placeholder{color:#d1d5db}
+.free-area{flex:1;min-height:0}
+.free-input{width:100%;height:100%;resize:none;outline:none;background:transparent;border:none;font-size:clamp(7px,1vw,12px);color:#6b7280;line-height:1.6;font-family:'Pretendard',sans-serif}
+.free-input::placeholder{color:#d1d5db}
+.slide-pagenum{position:absolute;bottom:6px;right:12px;font-size:9px;color:#d1d5db;font-family:monospace}
+/* bottom bar */
+.w-bottom{width:100%;max-width:960px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.btn-hist{border:none;background:transparent;font-size:12px;color:#9ca3af;cursor:pointer;font-family:'Pretendard',sans-serif;display:flex;align-items:center;gap:4px}
+.btn-hist:hover{color:#534AB7}
+.btn-save{border:1.5px solid #534AB7;background:transparent;color:#534AB7;font-size:12px;font-weight:600;padding:6px 16px;border-radius:8px;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all .15s}
+.btn-save:hover{background:rgba(83,74,183,.06)}
+.btn-submit{background:#534AB7;color:#fff;font-size:12px;font-weight:600;padding:6px 18px;border-radius:8px;cursor:pointer;border:none;font-family:'Pretendard',sans-serif;transition:all .15s;box-shadow:0 2px 6px rgba(83,74,183,.35)}
+.btn-submit:hover{background:#3A3289}
+.btn-group{display:flex;gap:8px}
+
+/* extracted image preview */
+.img-preview-box{flex:0 0 200px;border:1px dashed #d1d5db;border-radius:6px;display:none;flex-direction:column;overflow:hidden;background:#f9fafb;position:relative;}
+.img-preview-box img{width:100%;height:100%;object-fit:contain;padding:5px;}
+.btn-rm-img{position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:4px;font-size:10px;padding:3px 6px;cursor:pointer}
+.btn-rm-img:hover{background:rgba(0,0,0,0.8)}
+
+.meta-input { background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:6px 10px; font-size:11px; font-family:'Pretendard',sans-serif; color:#374151; outline:none; transition: border 0.15s; }
+.meta-input:focus { border-color:#534AB7; }
+.btn-add-agenda { background:rgba(255,255,255,.1); border:none; color:#fff; cursor:pointer; font-size:16px; width:24px; height:24px; border-radius:4px; display:flex; align-items:center; justify-content:center; transition: all .15s; }
+.btn-add-agenda:hover { background:rgba(255,255,255,.2); color:#534AB7; box-shadow:0 0 8px rgba(255,255,255,.2); }
+
+/* ─── Board View ─── */
+#boardView{flex:1;display:none;flex-direction:column;overflow:hidden}
+.b-topbar{padding:8px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fff}
+.b-bc{font-size:11px;color:#9ca3af;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.b-bc span{color:#6b7280}
+.b-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tpl-sel{font-size:11px;padding:4px 8px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;color:#6b7280;cursor:pointer;font-family:'Pretendard',sans-serif;outline:none}
+.ver-badge{font-size:10px;color:#9ca3af;padding:3px 8px;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb;display:flex;align-items:center;gap:4px}
+.vdot{width:5px;height:5px;border-radius:50%;background:#639922}
+.b-scroll{flex:1;overflow-y:auto}
+/* hero */
+.hero-wrap{padding:14px 16px;border-bottom:1px solid #e5e7eb}
+.hero-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.hero-eye{font-size:10px;color:#9ca3af;letter-spacing:.05em;text-transform:uppercase}
+.hero-h{font-size:15px;font-weight:600;color:#111827;margin-bottom:3px;line-height:1.4}
+.hero-sub{font-size:11px;color:#6b7280;margin-bottom:12px;line-height:1.5}
+/* templates */
+.tpl{display:none}
+.tpl.show{display:block}
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.kpi{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px}
+.kl{font-size:10px;color:#9ca3af;margin-bottom:3px}
+.kv{font-size:18px;font-weight:600;color:#111827;line-height:1}
+.kd{font-size:10px;margin-top:3px}
+.pos{color:#0F6E56}.neg{color:#A32D2D}
+.charts2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.cc{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:11px}
+.cc-lbl{font-size:10px;font-weight:500;color:#6b7280;margin-bottom:8px}
+.ch-wrap{position:relative;height:120px;width:100%}
+.lgnd{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.lgnd-i{display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280}
+.lgnd-sq{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.lgnd-ln{width:14px;height:2px;border-radius:1px;flex-shrink:0}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed}
+.tbl th{text-align:left;padding:5px 7px;font-weight:500;color:#9ca3af;border-bottom:1px solid #e5e7eb;font-size:10px}
+.tbl td{padding:5px 7px;color:#111827;border-bottom:1px solid #f3f4f6}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.hl td{background:#f9fafb;font-weight:500}
+.tr{text-align:right}
+.split2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:13px}
+.pnl-h{font-size:12px;font-weight:500;color:#111827;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid #e5e7eb}
+.pnl-item{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid #f3f4f6;font-size:11px}
+.pnl-item:last-child{border-bottom:none}
+.pnl-k{color:#6b7280}
+.pnl-v{font-weight:500;color:#111827}
+.pnl-body{font-size:11px;color:#6b7280;line-height:1.8}
+.tag{display:inline-flex;font-size:10px;padding:2px 7px;border-radius:20px;margin-bottom:8px}
+.tag-on{background:#E1F5EE;color:#085041}
+.tag-off{background:#FAECE7;color:#712B13}
+.tag-neu{background:#EEEDFE;color:#3C3489}
+.prog-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.prog-label{width:80px;color:#9ca3af;flex-shrink:0;font-size:10px}
+.prog-bar{flex:1;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px}
+.prog-val{width:36px;text-align:right;color:#111827;font-weight:500;font-size:10px;flex-shrink:0}
+.split4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.apv-grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+.apv-main{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:13px}
+.apv-side{display:flex;flex-direction:column;gap:10px}
+.apv-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:500;padding:4px 10px;border-radius:20px;background:#E1F5EE;color:#085041;margin-bottom:10px}
+.apv-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#1D9E75}
+.option-card{border:1px solid #e5e7eb;border-radius:8px;padding:10px;font-size:11px}
+.option-card.rec{border:1.5px solid #1D9E75}
+.opt-tag{font-size:10px;font-weight:500;margin-bottom:5px}
+.opt-rec{color:#085041}.opt-alt{color:#9ca3af}
+.opt-h{font-size:12px;font-weight:500;color:#111827;margin-bottom:5px}
+.opt-body{font-size:11px;color:#6b7280;line-height:1.7}
+/* narrative/appendix */
+.fold{padding:14px 16px}
+.fold-divider{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.fold-label{font-size:10px;color:#9ca3af;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.fold-label::before{content:'';display:inline-block;width:2px;height:10px;background:#534AB7;border-radius:2px}
+.fold-divider::after{content:'';flex:1;height:1px;background:#f3f4f6}
+.fold-hint{font-size:10px;color:#9ca3af;padding:2px 8px;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb;white-space:nowrap}
+.tabs{display:flex;gap:0;margin-bottom:14px;border-bottom:1px solid #e5e7eb}
+.tab{font-size:11px;padding:6px 12px;cursor:pointer;color:#9ca3af;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:5px;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'Pretendard',sans-serif}
+.tab.on{color:#111827;font-weight:500;border-bottom-color:#534AB7}
+.tab-badge{font-size:9px;padding:1px 5px;border-radius:20px;background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb}
+.tc{display:none}
+.tc.on{display:block}
+.ps{border-left:2px solid #e5e7eb;padding:0 0 16px 14px;position:relative}
+.ps:last-child{padding-bottom:0}
+.ps::before{content:'';position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:#f9fafb;border:1.5px solid #d1d5db}
+.ps.cur::before{background:#534AB7;border-color:#534AB7}
+.ptag{display:inline-flex;font-size:9px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:20px;margin-bottom:6px}
+.t-ctx{background:#EEEDFE;color:#3C3489}
+.t-res{background:#E1F5EE;color:#085041}
+.t-iss{background:#FAECE7;color:#712B13}
+.t-nxt{background:#E6F1FB;color:#0C447C}
+.ph{font-size:12px;font-weight:500;color:#111827;margin-bottom:4px;line-height:1.4}
+.pb{font-size:11px;color:#6b7280;line-height:1.8}
+.pb p{margin-bottom:6px}.pb p:last-child{margin-bottom:0}
+.hi{font-weight:500;color:#111827}
+.ap-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ap-card{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:11px}
+.ap-t{font-size:11px;font-weight:500;color:#111827;margin-bottom:4px}
+.ap-b{font-size:11px;color:#6b7280;line-height:1.7}
+.disc{margin-top:14px;padding:11px 13px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px}
+.disc-h{font-size:10px;font-weight:500;color:#6b7280;margin-bottom:7px;display:flex;align-items:center;gap:5px}
+.disc-h::before{content:'';width:5px;height:5px;border-radius:50%;background:#BA7517;flex-shrink:0}
+.disc-q{font-size:11px;color:#6b7280;line-height:1.7;padding-left:9px;border-left:2px solid #e5e7eb;margin-bottom:5px}
+.disc-q:last-child{margin-bottom:0}
+/* empty board state */
+.empty-board{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#9ca3af}
+.empty-board .icon{font-size:48px}
+.empty-board .msg{font-size:15px;font-weight:600;color:#6b7280}
+.empty-board .sub{font-size:13px}
+.btn-switch{background:#534AB7;color:#fff;border:none;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Pretendard',sans-serif;transition:all .15s}
+.btn-switch:hover{background:#3A3289}
+/* history panel */
+#histPanel{width:256px;min-width:256px;background:#fff;border-left:1px solid #e5e7eb;display:none;flex-direction:column;overflow:hidden}
+#histPanel.open{display:flex}
+.hist-head{padding:12px 14px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hist-title{font-size:13px;font-weight:700;color:#111827}
+.hist-close{background:transparent;border:none;color:#9ca3af;font-size:18px;cursor:pointer;line-height:1;font-family:sans-serif}
+.hist-list{flex:1;overflow-y:auto;padding:10px}
+.hist-item{background:#f9fafb;border-radius:10px;padding:12px;border:1px solid #f3f4f6;margin-bottom:8px}
+.hist-meta{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.hist-ver{background:#534AB7;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:99px}
+.hist-time{font-size:10px;color:#9ca3af}
+.hist-note{font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
+.hist-restore{background:transparent;border:none;font-size:11px;color:#534AB7;font-weight:700;cursor:pointer;font-family:'Pretendard',sans-serif;padding:0}
+.hist-restore:hover{text-decoration:underline}
+.hist-empty{display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;color:#d1d5db;font-weight:600}
+/* toast */
+#toast{position:fixed;bottom:20px;right:20px;background:#111827;color:#fff;font-size:12px;font-weight:700;padding:10px 18px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:100;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TopBar -->
+<div id="topbar">
+  <div class="logo">KRAFTON BOD</div>
+  <div class="view-toggle">
+    <button class="vtb on" onclick="setView('working')" id="vbWorking">🔧 실무진 뷰</button>
+    <button class="vtb" onclick="setView('board')" id="vbBoard">📋 이사회 뷰</button>
+  </div>
+  <div class="topbar-right">
+    <button class="hist-btn" id="histBtn" onclick="toggleHistory()">🕐 히스토리 <span id="histBadge" class="hbadge" style="display:none">0</span></button>
+    <div style="width:1px;height:16px;background:#e5e7eb"></div>
+    <div class="lang-toggle" id="langToggle" style="opacity:.35;pointer-events:none">
+      <button class="lb on" id="btnKo" onclick="setLang('ko')">한국어</button>
+      <button class="lb" id="btnEn" onclick="setLang('en')">English</button>
+    </div>
+    <div class="avatar">JB</div>
+  </div>
+</div>
+
+<div id="main">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sb-head" style="display:flex; align-items:flex-start; justify-content:space-between;">
+      <div>
+        <div class="sb-logo">KRAFTON BOD</div>
+        <div class="sb-sub" id="sbSub">'26.04 정기이사회</div>
+      </div>
+      <button class="btn-add-agenda" onclick="addNewAgenda()" title="새 안건 추가">＋</button>
+    </div>
+    <div class="toc" id="toc"></div>
+  </div>
+
+  <!-- Content -->
+  <div id="content">
+
+    <!-- Working View -->
+    <div id="workingView">
+      <div class="w-banner">
+        <span>🔧 실무진 작업 화면 — 이사회 구성원에게 공개되지 않습니다</span>
+        <select class="status-sel" id="statusSel" onchange="onStatusChange(this.value)">
+          <option value="🔴">🔴 작성중</option>
+          <option value="🟡">🟡 검토요청</option>
+          <option value="🟢">🟢 완료</option>
+        </select>
+      </div>
+      <div class="w-scroll" id="wScroll">
+        <!-- Slide card -->
+        <div class="slide-card" id="slideCard">
+          <div class="slide-head" style="flex-direction:column; align-items:stretch; gap:12px;">
+            <div style="display:flex; gap:10px; align-items:center;">
+              <input class="meta-input" id="wSection" placeholder="섹션명 (예: I. Company Strategy)" oninput="onDraftChange()" style="flex:1" />
+              <input class="meta-input" id="wNumber" placeholder="안건번호 (예: 1-1)" oninput="onDraftChange()" style="width:100px" />
+              <select class="meta-input" id="wType" onchange="onDraftChange()" style="width:110px">
+                <option value="보고/공유">보고/공유</option>
+                <option value="승인사항">승인사항</option>
+                <option value="사전공유">사전공유</option>
+                <option value="논의사항">논의사항</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px;">
+              <div style="flex:1;min-width:0">
+                <input class="slide-title-input" id="wTitle" placeholder="안건명을 입력하세요" oninput="onDraftChange()"/>
+              </div>
+              <div class="slide-dri-area">
+                <span class="dri-label">DRI</span>
+                <input class="dri-input" id="wDri" placeholder="이름" oninput="onDraftChange()"/>
+                <span class="dri-sep">|</span>
+                <span class="sl-label">SL</span>
+                <input class="dri-input sl" id="wSl" placeholder="이름" oninput="onDraftChange()"/>
+              </div>
+            </div>
+          </div>
+          <div class="slide-body">
+            <div class="gm-wrap">
+              <input class="gm-input" id="wGm" placeholder="핵심 결론 한 문장 — 수치 포함" oninput="onDraftChange()"/>
+            </div>
+            <div style="display:flex; flex:1; gap:16px; min-height:0">
+              <div style="flex:1; display:flex; flex-direction:column; min-width:0">
+                <div class="bullets">
+                  <div class="bullet-row"><span class="bullet-dot"></span><input class="bullet-input" id="b0" placeholder="Bullet 1" oninput="onDraftChange()"/></div>
+                  <div class="bullet-row"><span class="bullet-dot"></span><input class="bullet-input" id="b1" placeholder="Bullet 2" oninput="onDraftChange()"/></div>
+                  <div class="bullet-row"><span class="bullet-dot"></span><input class="bullet-input" id="b2" placeholder="Bullet 3" oninput="onDraftChange()"/></div>
+                </div>
+                <div class="free-area">
+                  <textarea class="free-input" id="wFree" placeholder="추가 데이터, 표, 맥락 등 자유 입력" oninput="onDraftChange()"></textarea>
+                </div>
+              </div>
+              <div class="img-preview-box" id="wExtractedBox">
+                <button class="btn-rm-img" onclick="removeExtractedImg()">✕</button>
+                <img id="wExtractedImg" src="">
+                <div style="position:absolute; bottom:0; width:100%; background:rgba(255,255,255,0.9); font-size:9px; color:#6b7280; text-align:center; padding:3px; border-top:1px solid #e5e7eb;">추출된 시각 자료</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-pagenum" id="wPageNum"></div>
+        </div>
+        <!-- Bottom bar -->
+        <div class="w-bottom">
+          <div style="display:flex; gap:10px;">
+            <button class="btn-hist" onclick="document.getElementById('pptUpload').click()" style="color:#1D9E75;">📤 PPT 자동 파싱 업로드</button>
+            <input type="file" id="pptUpload" accept=".ppt,.pptx,image/*" style="display:none" onchange="handlePptUpload(event)">
+            <button class="btn-hist" onclick="toggleHistory()">🕐 히스토리</button>
+            <button class="btn-hist" onclick="deleteAgenda()" style="color:#ef4444;">🗑️ 페이지 삭제</button>
+          </div>
+          <div class="btn-group">
+            <button class="btn-save" onclick="saveAgenda('임시저장')">💾 임시저장</button>
+            <button class="btn-submit" onclick="submitAgenda()">✅ 제출하기 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Board View -->
+    <div id="boardView">
+      <div class="b-topbar">
+        <div class="b-bc" id="bBc">안건을 선택해주세요</div>
+        <div class="b-right">
+          <select class="tpl-sel" id="tplSel" onchange="switchTemplate(this.value)">
+            <option value="A">템플릿 A — 재무 실적</option>
+            <option value="B">템플릿 B — 2분할</option>
+            <option value="C">템플릿 C — 4분할</option>
+            <option value="D">템플릿 D — 승인 안건</option>
+          </select>
+          <div class="ver-badge"><span class="vdot"></span><span id="verTxt">v1 초안</span></div>
+        </div>
+      </div>
+      <div class="b-scroll" id="bScroll">
+        <!-- empty state -->
+        <div class="empty-board" id="emptyBoard">
+          <div class="icon">📄</div>
+          <div class="msg">아직 작성된 내용이 없습니다</div>
+          <div class="sub">실무진 뷰에서 내용을 먼저 입력해주세요</div>
+          <button class="btn-switch" onclick="setView('working')">실무진 뷰로 전환</button>
+        </div>
+        <!-- content -->
+        <div id="boardContent" style="display:none">
+          <div class="hero-wrap">
+            <div class="hero-meta">
+              <div class="hero-eye" id="hEye"></div>
+            </div>
+            <div id="bPptOverlay" style="display:none; margin-top:12px; margin-bottom:12px; width:100%; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+               <img id="bPptImg" style="width:100%; height:auto; display:block; object-fit:contain; max-height:400px; margin:0 auto;">
+            </div>
+            <div class="hero-h" id="hH"></div>
+            <div class="hero-sub" id="hSub"></div>
+            <div id="tplA" class="tpl show">
+              <div class="kpi-row">
+                <div class="kpi"><div class="kl" id="kl0">매출</div><div class="kv" id="kv0">—</div><div class="kd" id="kd0"></div></div>
+                <div class="kpi"><div class="kl" id="kl1">손익</div><div class="kv" id="kv1">—</div><div class="kd" id="kd1"></div></div>
+                <div class="kpi"><div class="kl" id="kl2">PUBG PC A.MAU</div><div class="kv" id="kv2">—</div><div class="kd" id="kd2"></div></div>
+                <div class="kpi"><div class="kl" id="kl3">BGMI A.DAU</div><div class="kv" id="kv3">—</div><div class="kd" id="kd3"></div></div>
+              </div>
+              <div class="charts2">
+                <div class="cc"><div class="cc-lbl" id="cl0">프랜차이즈 매출 추이 (억원)</div><div class="lgnd" id="lgnd0"></div><div class="ch-wrap"><canvas id="cRev"></canvas></div></div>
+                <div class="cc"><div class="cc-lbl" id="cl1">서비스별 A.DAU 추이 (백만명)</div><div class="lgnd" id="lgnd1"></div><div class="ch-wrap"><canvas id="cDau"></canvas></div></div>
+              </div>
+              <table class="tbl"><thead><tr><th style="width:36%" id="th0">항목</th><th class="tr" style="width:16%" id="th1">'25년 계획</th><th class="tr" style="width:16%" id="th2">'25년 실적</th><th class="tr" style="width:16%" id="th3">계획 대비</th><th class="tr" style="width:16%">%</th></tr></thead>
+              <tbody><tr class="hl"><td id="td00">매출 합계</td><td class="tr">28,668</td><td class="tr">27,921</td><td class="tr neg">–747</td><td class="tr neg">–3%</td></tr>
+              <tr><td style="padding-left:14px;color:#9ca3af">PUBG PC/Console</td><td class="tr">10,773</td><td class="tr">10,824</td><td class="tr pos">+51</td><td class="tr pos">+0%</td></tr>
+              <tr><td style="padding-left:14px;color:#9ca3af">PUBGM Global</td><td class="tr">5,943</td><td class="tr">6,559</td><td class="tr pos">+616</td><td class="tr pos">+10%</td></tr>
+              <tr><td style="padding-left:14px;color:#9ca3af">CP</td><td class="tr">6,991</td><td class="tr">7,265</td><td class="tr pos">+274</td><td class="tr pos">+4%</td></tr>
+              <tr><td style="padding-left:14px;color:#9ca3af">BGMI</td><td class="tr">2,577</td><td class="tr">2,237</td><td class="tr neg">–340</td><td class="tr neg">–13%</td></tr>
+              <tr class="hl"><td id="td01">손익</td><td class="tr">18,896</td><td class="tr">18,950</td><td class="tr pos">+54</td><td class="tr pos">+0%</td></tr></tbody></table>
+            </div>
+            <div id="tplB" class="tpl">
+              <div class="split2">
+                <div class="panel"><div class="pnl-h" id="bh0">'25년 파이프라인 출시 결과</div><div class="tag tag-on">1PP 출시 완료</div><div class="pnl-item"><span class="pnl-k">inZOI</span><span class="pnl-v pos">645억원</span></div><div class="pnl-item"><span class="pnl-k">Dinkum Original</span><span class="pnl-v">73억원</span></div><div class="pnl-item"><span class="pnl-k">Subnautica 2</span><span class="pnl-v neg">'26년 2Q 연기</span></div><div style="margin-top:10px"><div class="prog-row"><span class="prog-label">매출 달성률</span><div class="prog-bar"><div class="prog-fill" style="width:27%;background:#534AB7"></div></div><span class="prog-val">27%</span></div><div class="prog-row"><span class="prog-label">퍼블리싱 달성</span><div class="prog-bar"><div class="prog-fill" style="width:50%;background:#1D9E75"></div></div><span class="prog-val">50%</span></div></div></div>
+                <div class="panel"><div class="pnl-h" id="bh1">'26년 출시 예정 파이프라인</div><div class="tag tag-neu">확정 2종 · 불투명 2종</div><div class="pnl-item"><span class="pnl-k">Subnautica 2</span><span class="pnl-v">'26.2Q EA</span></div><div class="pnl-item"><span class="pnl-k">Last Epoch</span><span class="pnl-v">'26.2Q 이관</span></div><div class="pnl-item"><span class="pnl-k">Project ZETA</span><span class="pnl-v">'26.4Q EA</span></div><div style="margin-top:10px"><div class="prog-row"><span class="prog-label">'26 예상 매출</span><div class="prog-bar"><div class="prog-fill" style="width:60%;background:#EF9F27"></div></div><span class="prog-val">711억</span></div><div class="prog-row"><span class="prog-label">2개년 목표 대비</span><div class="prog-bar"><div class="prog-fill" style="width:14%;background:#A32D2D"></div></div><span class="prog-val">14%</span></div></div></div>
+              </div>
+            </div>
+            <div id="tplC" class="tpl">
+              <div class="split4">
+                <div class="panel"><div class="pnl-h">BGMI '26년 전략</div><div class="tag tag-on">전략 포커스 4대</div><div class="pnl-body">유저 경험 개선, Gen Z &amp; 지역 유저 확장, Fun IP &amp; UGC 생태계 육성, Whale 고과금 유저 육성 프로그램 도입.</div></div>
+                <div class="panel"><div class="pnl-h">매출 목표</div><div class="tag tag-neu">YoY +12%</div><div class="pnl-item"><span class="pnl-k">'25 실적</span><span class="pnl-v">$196M</span></div><div class="pnl-item"><span class="pnl-k">'26 목표</span><span class="pnl-v pos">$220M</span></div></div>
+                <div class="panel"><div class="pnl-h">크리켓 게임 전략</div><div class="tag tag-on">3종 신작 파이프라인</div><div class="pnl-body">RealCricket Max('27), Cricket All Stars('26), 3rd New Title('28) 신작 제작 병행.</div></div>
+                <div class="panel"><div class="pnl-h">IPL팀 투자</div><div class="tag tag-off">2월 중순 의사결정</div><div class="pnl-body">The Times 그룹 컨소시엄 참여 검토. RR 팀 우선(밸류 $1.2~1.4B).</div></div>
+              </div>
+            </div>
+            <div id="tplD" class="tpl">
+              <div class="apv-grid">
+                <div class="apv-main"><div class="apv-badge">이사회 승인 요청</div><div style="font-size:12px;font-weight:500;color:#111827;margin-bottom:6px" id="dh">신규 주주환원정책 수립 — C안 승인 요청</div><div style="font-size:11px;color:#6b7280;line-height:1.7;margin-bottom:12px" id="db">3년간 총 1조원 이상 환원을 확정 총액으로 제시하여 시장 예측 가능성과 주주환원 의지를 명확히 전달하는 방식.</div>
+                <table class="tbl"><thead><tr><th>구분</th><th>A안</th><th>B안</th><th style="color:#085041;font-weight:500">C안 (권고)</th></tr></thead>
+                <tbody><tr><td>재원 기준</td><td>FCF × 40%</td><td>PUBG매출 × 10%</td><td style="color:#085041">3년 1조 고정</td></tr>
+                <tr><td>배당</td><td>연 1,000억</td><td>연 1,000억 이내</td><td style="color:#085041">연 1,000억 고정</td></tr>
+                <tr><td>예측 가능성</td><td>낮음</td><td>중간</td><td style="color:#085041">높음</td></tr></tbody></table></div>
+                <div class="apv-side"><div class="option-card rec"><div class="opt-tag opt-rec">권고안 — C안</div><div class="opt-h">3년간 총 1조원 이상</div><div class="opt-body">확정 금액 공시로 투자자 신뢰 제고. 배당 3,000억 + 자사주 7,000억+ 구성.</div></div><div class="option-card"><div class="opt-tag opt-alt">대안 검토됨</div><div class="opt-h">A안 / B안</div><div class="opt-body">A안은 유연하나 예측 가능성 낮음. B안은 PUBG IP 매출 연동 방식.</div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="fold">
+            <div class="fold-divider"><div class="fold-label" id="foldLabel">사전 읽기 자료 (Pre-reading)</div><div class="fold-hint" id="foldHint">회의 전 읽기 권장 · 약 5분 소요</div></div>
+            <div class="tabs">
+              <button class="tab on" onclick="switchTab(event,'nar')" id="tabNar">Narrative <span class="tab-badge">필독</span></button>
+              <button class="tab" onclick="switchTab(event,'app')" id="tabApp">Appendix <span class="tab-badge">참고</span></button>
+            </div>
+            <div id="tc-nar" class="tc on"><div id="narrativeContent"></div><div class="disc"><div class="disc-h" id="discH">본 회의 논의 제안</div><div id="discContent"></div></div></div>
+            <div id="tc-app" class="tc"><div class="ap-grid" id="appendixContent"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- History Panel -->
+  <div id="histPanel">
+    <div class="hist-head">
+      <span class="hist-title">🕐 히스토리</span>
+      <button class="hist-close" onclick="toggleHistory()">✕</button>
+    </div>
+    <div class="hist-list" id="histList"></div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+// ─── 차트 설정 ───
+const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridC = 'rgba(0,0,0,.06)';
+const tickC = 'rgba(0,0,0,.35)';
+let charts = {};
+
+const baseOpts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ' '+ctx.parsed.y.toLocaleString() } } },
+  scales:{
+    x:{ grid:{ color:gridC }, ticks:{ color:tickC, font:{ size:9 } } },
+    y:{ grid:{ color:gridC }, ticks:{ color:tickC, font:{ size:9 }, callback: v => v>=10000?(v/10000).toFixed(1)+'조':v.toLocaleString() } }
+  }
+};
+
+const revDS = [
+  { label:'PC/Console', data:[5678,9331,10824,11967], backgroundColor:'#534AB7' },
+  { label:'PUBGM GL',   data:[4387,5704,6559,6856],   backgroundColor:'#1D9E75' },
+  { label:'CP',         data:[5913,6283,7265,7327],   backgroundColor:'#378ADD' },
+  { label:'BGMI',       data:[828,940,2237,2525],     backgroundColor:'#EF9F27' },
+];
+const dauDS = [
+  { label:'PUBG PC MAU', data:[11.3,15.7,17.2,18.0], borderColor:'#534AB7', backgroundColor:'transparent', tension:.3, pointRadius:2 },
+  { label:'BGMI DAU',    data:[9.0,10.7,10.0,11.0],  borderColor:'#EF9F27', backgroundColor:'transparent', tension:.3, pointRadius:2 },
+  { label:'PUBGM GL DAU',data:[26.7,30.2,25.1,27.0], borderColor:'#1D9E75', backgroundColor:'transparent', tension:.3, pointRadius:2 },
+];
+
+// ─── 데이터 ───
+const STORAGE_KEY = 'bod_v3';
+const DEFAULT_AGENDAS = [
+  { id:1, number:'1-1', titleDraft:'CEO Message: 전략 방향성', section:'I. Company Strategy', type:'보고/공유', status:'🟢',
+    content:{ title:"CEO Message: '26년 전략 방향성 Update", dri:'김창한', sl:'강재형', governingMessage:"크래프톤의 Core인 게임을 토대로, Franchise IP 확장과 AI 기반 미래혁신 선도", bullets:["작고 빠른 도전 및 Scale-up을 통해 장기 PLC 가능 Franchise IP 확보","게임제작/서비스로 축적된 역량을 활용한 신사업 기회 창출","'29년 전사 매출 7조원, 기업가치 2배 목표 달성"], freeText:"'26년 1월 KLT Recap에서 전략 방향성을 재정립했습니다." },
+    history:[{version:1,savedAt:'2026.03.20 10:00',note:'초안 작성',snapshot:{}}],
+    boardData: {
+      tpl:'A',
+      bc:{ ko:"I. 전략 &amp; 핵심사업 <span>/ CEO Message / '26년 전략 방향성</span>", en:"I. Strategy &amp; Core Business <span>/ CEO Message / FY'26 Strategic Direction</span>" },
+      eye:{ ko:"1-1. CEO Message · DRI 김창한 | SL 강재형", en:"1-1. CEO Message · DRI Kim Chang-han | SL Kang Jae-hyung" },
+      h:{ ko:"크래프톤의 Core인 게임을 토대로, Franchise IP 확장과 AI 기반 미래혁신 선도", en:"Building on KRAFTON's core games business, drive Franchise IP expansion and AI-based future innovation" },
+      sub:{ ko:"작고 빠른 도전 및 Scale-up을 통해 장기 PLC 가능 Franchise IP 확보", en:"Secure long-PLC Franchise IPs through agile challenges and scale-up" },
+      narrative:[
+        {tag:'t-ctx',tagTxt:{ko:'배경 및 맥락',en:'Context'},cur:false,h:{ko:"전략 방향성 재정립",en:"Strategy Realignment"},b:{ko:"'26년 1월 KLT Recap에서 전략 방향성을 재정립했습니다.",en:"Strategic direction was realigned at the January '26 KLT Recap."}}
+      ],
+      disc:[{ko:'핵심 Franchise IP 확보를 위한 투자 우선순위는?',en:'What are the investment priorities for securing core Franchise IPs?'}],
+      appendix:[{t:{ko:'참고: 중장기 전략 로드맵',en:'Ref: Long-term Strategy Roadmap'},b:{ko:"'29년까지 5개년 성장 계획 수립 중.",en:"Five-year growth plan through '29 is being formulated."}}]
+    }
+  },
+  { id:2, number:'2-5', titleDraft:"PUBG IP Franchise: '25년 실적", section:'I. Company Strategy', type:'보고/공유', status:'🟡',
+    content:{ title:'', dri:'배동근', sl:'황동경', governingMessage:'', bullets:['','',''], freeText:'' },
+    history:[],
+    boardData: {
+      tpl:'A',
+      bc:{ ko:"I. 전략 &amp; 핵심사업 <span>/ PUBG IP Franchise / '25년 연간 실적</span>", en:"I. Strategy &amp; Core Business <span>/ PUBG IP Franchise / FY'25 Results</span>" },
+      eye:{ ko:"2-5. PUBG IP Franchise · DRI 배동근 | SL 황동경", en:"2-5. PUBG IP Franchise · DRI Bae Dong-geun | SL Hwang Dong-kyung" },
+      h:{ ko:"'25년 누적 매출 2조 7,921억원, 손익 1조 8,950억원", en:"FY'25 Cumulative Revenue ₩2.79T, Operating Income ₩1.90T" },
+      sub:{ ko:"계획 대비 매출 –3%, 손익 +0.3% · CP Incentive 지연 제외 시 실질 계획 부합", en:"Revenue –3% vs plan, OI +0.3% vs plan · On track excl. delayed CP Incentive" },
+      narrative:[
+        {tag:'t-ctx',tagTxt:{ko:'배경 및 맥락',en:'Context'},cur:false,h:{ko:"PUBG IP는 '25년에도 안정적 수익 기반 유지",en:"PUBG IP maintained stable earnings in FY'25"},b:{ko:"매출 2조 7,921억원, 손익 1조 8,950억원 기록. CP Incentive $100M 협의 지연(–1,290억)이 주요 미달 요인.",en:"Revenue ₩2.79T, OI ₩1.90T. Delayed CP Incentive $100M (–₩129B) was the primary shortfall driver."}},
+        {tag:'t-res',tagTxt:{ko:'주요 성과 및 이슈',en:'Key Results'},cur:true,h:{ko:"PC는 콜라보로 성장, 모바일은 경쟁 심화",en:"PC grew on collabs; mobile hit by competition"},b:{ko:"PUBG PC/Console은 8주년 이벤트·포르쉐 콜라보로 A.MAU +45만. BGMI는 Free Fire 경쟁 심화로 A.DAU –259만.",en:"PUBG PC/Console gained +450K A.MAU via anniversary & Porsche collab. BGMI lost –2.59M A.DAU amid intensified Free Fire competition."}},
+        {tag:'t-iss',tagTxt:{ko:'핵심 쟁점',en:'Key Issues'},cur:false,h:{ko:"모바일 트래픽 하락은 구조적 과제",en:"Mobile traffic decline is structural"},b:{ko:"BGMI A.DAU 11M 목표를 뒷받침하는 4대 전략의 실행 로드맵 이사회 확인 필요.",en:"Board-level confirmation needed on execution roadmap for the 4 strategies supporting the 11M A.DAU target."}},
+        {tag:'t-nxt',tagTxt:{ko:'다음 단계',en:'Next Steps'},cur:false,h:{ko:"'26년 상반기가 모바일 회복의 분기점",en:"H1'26 is the inflection point for mobile recovery"},b:{ko:"상반기 UA 집행 계획 및 집중 이벤트 일정을 2Q 이사회 전 별도 공유 예정.",en:"H1 UA spend plan and event calendar to be shared ahead of Q2 board meeting."}}
+      ],
+      disc:[
+        {ko:"BGMI 4대 전략 중 상반기 내 실행 가능한 레버와 중장기 과제를 어떻게 구분하고 있는가?",en:"Of the four BGMI strategies, which levers can be executed in H1'26 and which are longer-term?"},
+        {ko:"모바일 트래픽 반등을 조기 판단할 선행 지표와 이사회 보고 주기는?",en:"What leading indicators will assess mobile recovery early, and what board reporting cadence will follow?"}
+      ],
+      appendix:[
+        {t:{ko:"A-1. BGMI 유저 세그먼트별 매출",en:"A-1. BGMI Revenue by User Segment"},b:{ko:"Whale 유저 매출 소폭 감소. Dolphin·Minnow 구간 성장으로 저변 확대는 긍정적.",en:"Whale user revenue dipped slightly. Dolphin/Minnow tier growth signals positive base broadening."}},
+        {t:{ko:"A-2. CP Incentive 미집행 배경",en:"A-2. Background on Unexecuted CP Incentive"},b:{ko:"$100M 계약 조건 협의 지연으로 미집행. '26년 협의 재개 시 상당한 상방 효과 예상.",en:"$100M not executed due to contract negotiation delays. Significant upside expected upon resumption in FY'26."}}
+      ]
+    }
+  },
+  { id:3, number:'1-4', titleDraft:'(사전공유) 인도 크리켓 IPL팀 투자', section:'II. Emerging Market', type:'사전공유', status:'🔴',
+    content:{ title:'', dri:'손현일', sl:'어창선', governingMessage:'', bullets:['','',''], freeText:'' },
+    history:[],
+    boardData:{ tpl:'C', bc:{ko:"II. 신흥 시장 <span>/ (사전공유) 인도 크리켓 IPL팀 투자</span>",en:"II. Emerging Market <span>/ (Pre-Disclosure) India Cricket IPL Team Investment</span>"}, eye:{ko:"1-4. (사전공유) IPL팀 투자 · DRI 손현일 | SL 어창선",en:"1-4. (Pre-Disclosure) IPL Investment · DRI Son Hyun-il | SL Eo Chang-sun"}, h:{ko:"압도적 인기 크리켓팀 지분 참여로 브랜드 인지도 제고 및 사업 시너지 창출",en:"Acquire stake in top cricket franchise to boost brand recognition and create business synergies"}, sub:{ko:"의결 불필요 — 사전 공유 안건",en:"No vote required — Pre-disclosure item"}, narrative:[{tag:'t-ctx',tagTxt:{ko:'배경',en:'Context'},cur:true,h:{ko:"인도 크리켓 IPL팀 투자 추진 배경",en:"Background on India IPL Team Investment"},b:{ko:"The Times 그룹 컨소시엄 참여 검토. RR 팀 우선(밸류 $1.2~1.4B). 크래프톤 분담 ~$300M(15~20%).",en:"Evaluating participation in The Times Group consortium. RR team prioritized (valuation $1.2~1.4B). KRAFTON share ~$300M (15~20%)."}}], disc:[{ko:"IPL팀 투자가 BGMI 및 크리켓 게임 사업과의 시너지 창출 방안은?",en:"How will the IPL investment create synergies with BGMI and cricket game business?"}], appendix:[] }
+  },
+  { id:4, number:'5', titleDraft:"'26년 예산 [승인사항 2]", section:'III. Financial', type:'승인사항', status:'🔴',
+    content:{ title:'', dri:'배동근', sl:'황동경', governingMessage:'', bullets:['','',''], freeText:'' },
+    history:[],
+    boardData:{ tpl:'D', bc:{ko:"III. 재무 <span>/ '26년 예산 [승인사항 2]</span>",en:"III. Financial <span>/ FY'26 Budget [Approval Item 2]</span>"}, eye:{ko:"5. '26년 예산 [승인사항 2] · DRI 배동근 | SL 황동경",en:"5. FY'26 Budget [Approval Item 2] · DRI Bae Dong-geun | SL Hwang Dong-kyung"}, h:{ko:"'26년 예산 1조 9,627억원 승인 요청",en:"Requesting approval for FY'26 budget of ₩1.9627T"}, sub:{ko:"전년 대비 +34% 증가 — AI, 인도, 신사업 투자 확대",en:"Up +34% YoY — expanded investment in AI, India, and new businesses"}, narrative:[{tag:'t-ctx',tagTxt:{ko:'배경',en:'Context'},cur:true,h:{ko:"'26년 예산 편성 방향",en:"FY'26 Budget Direction"},b:{ko:"게임 신작, AI R&D, 신사업 중심으로 우선 증원 및 예산 배정.",en:"Priority allocation focused on new game titles, AI R&D, and new business initiatives."}}], disc:[{ko:"예산 증가 주요 항목 중 투자 효과 검증이 가장 시급한 영역은?",en:"Among the major budget increases, which area requires the most urgent validation of investment returns?"}], appendix:[] }
+  },
+  { id:5, number:'2', titleDraft:"'26년 인력계획(안) [승인사항 6]", section:'IV. Company & People', type:'승인사항', status:'🔴',
+    content:{ title:'', dri:'한소영', sl:'김성우', governingMessage:'', bullets:['','',''], freeText:'' },
+    history:[],
+    boardData:{ tpl:'B', bc:{ko:"IV. 조직 &amp; 운영 <span>/ '26년 인력계획 [승인사항 6]</span>",en:"IV. Company &amp; People <span>/ FY'26 Headcount Plan [Approval Item 6]</span>"}, eye:{ko:"2. '26년 인력계획 [승인사항 6] · DRI 한소영 | SL 김성우",en:"2. FY'26 Headcount Plan [Approval Item 6] · DRI Han So-young | SL Kim Sung-woo"}, h:{ko:"외부 채용 동결 기간 중, 게임 신작·AI R&D·신사업 중심 우선 증원 승인 요청",en:"Requesting approval for priority hiring in new game titles, AI R&D, and new businesses during external hiring freeze"}, sub:{ko:"3월 말까지 외부 채용 동결 기간 — 전략 분야 예외 적용",en:"External hiring freeze until end of March — strategic areas exempt"}, narrative:[{tag:'t-ctx',tagTxt:{ko:'배경',en:'Context'},cur:true,h:{ko:"채용 동결 중 전략적 예외 증원",en:"Strategic exceptions during hiring freeze"},b:{ko:"전사 채용 동결 중이나 게임 신작, AI R&D, 신사업 관련 포지션은 예외 적용.",en:"Company-wide hiring freeze in effect, with exceptions for new game titles, AI R&D, and new business positions."}}], disc:[{ko:"채용 동결 기간 이후 추가 인력 계획 수립 일정과 기준은?",en:"What is the timeline and criteria for developing the supplementary headcount plan after the hiring freeze?"}], appendix:[] }
+  }
+];
+
+// ─── 상태 ───
+let agendas = [];
+let selectedId = 1;
+let viewMode = 'working';
+let lang = 'ko';
+let showHist = false;
+let isDirty = false;
+let currentPptImg = null;
+
+function loadAgendas() {
+  try {
+    const r = localStorage.getItem(STORAGE_KEY);
+    if (r) {
+      const saved = JSON.parse(r);
+      return saved.map(s => {
+        const def = DEFAULT_AGENDAS.find(d => d.id === s.id);
+        const base = def ? clone(def) : { 
+          number:'', titleDraft:'새 안건', section:'새 섹션', type:'보고/공유', 
+          boardData: { tpl:'A', sub:{ko:'',en:''}, narrative:[], disc:[], appendix:[] } 
+        };
+        return { ...base, ...s };
+      });
+    }
+  } catch {}
+  return JSON.parse(JSON.stringify(DEFAULT_AGENDAS));
+}
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(agendas)); } catch {}
+}
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+// ─── Toast ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ─── 뷰 전환 ───
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('workingView').style.display = mode === 'working' ? 'flex' : 'none';
+  document.getElementById('boardView').style.display = mode === 'board' ? 'flex' : 'none';
+  document.getElementById('vbWorking').classList.toggle('on', mode === 'working');
+  document.getElementById('vbBoard').classList.toggle('on', mode === 'board');
+  const lt = document.getElementById('langToggle');
+  lt.style.opacity = mode === 'board' ? '1' : '.35';
+  lt.style.pointerEvents = mode === 'board' ? 'auto' : 'none';
+  if (mode === 'board') renderBoard();
+}
+
+// ─── 언어 ───
+function setLang(l) {
+  lang = l;
+  document.getElementById('btnKo').classList.toggle('on', l === 'ko');
+  document.getElementById('btnEn').classList.toggle('on', l === 'en');
+  renderBoard();
+}
+
+// ─── 사이드바 렌더 ───
+function renderSidebar() {
+  const toc = document.getElementById('toc');
+  const sections = [...new Set(agendas.map(a => a.section))];
+  let html = '';
+  const typeKey = { '보고/공유':'보고공유', '사전공유':'사전공유', '승인사항':'승인사항', '논의사항':'논의사항' };
+  sections.forEach(sec => {
+    html += `<div class="toc-s">${sec}</div>`;
+    agendas.filter(a => a.section === sec).forEach(a => {
+      const on = a.id === selectedId ? ' on' : '';
+      const hasContent = !!a.content.title;
+      const tkey = typeKey[a.type] || '보고공유';
+      html += `<div class="ti${on}" onclick="selectAgenda(${a.id})">
+        <span class="td"></span>
+        <div class="ti-body">
+          <span class="ti-type type-${tkey}">${a.type}</span>
+          <div class="ti-title">${hasContent?'<span class="green-dot"></span>':''}${a.titleDraft}</div>
+        </div>
+        <div class="ti-right">
+          <span class="status-dot">${a.status}</span>
+          ${a.history.length>0?`<span class="v-tag">v${a.history.length}</span>`:''}
+        </div>
+      </div>`;
+    });
+  });
+  toc.innerHTML = html;
+}
+
+// ─── 안건 선택 ───
+function selectAgenda(id) {
+  selectedId = id;
+  renderSidebar();
+  loadWorkingForm();
+  updateHistPanel();
+  if (viewMode === 'board') renderBoard();
+}
+
+// ─── 실무진 폼 로드 ───
+function loadWorkingForm() {
+  const a = agendas.find(x => x.id === selectedId);
+  if (!a) return;
+  const c = a.content;
+  
+  setExtractedImage(c.uploadedImage || null);
+
+  document.getElementById('wSection').value = a.section || '';
+  document.getElementById('wNumber').value = a.number || '';
+  document.getElementById('wType').value = a.type || '보고/공유';
+  
+  document.getElementById('wTitle').value = c.title || a.titleDraft || '';
+  document.getElementById('wDri').value = c.dri || '';
+  document.getElementById('wSl').value = c.sl || '';
+  document.getElementById('wGm').value = c.governingMessage || '';
+  document.getElementById('b0').value = c.bullets[0] || '';
+  document.getElementById('b1').value = c.bullets[1] || '';
+  document.getElementById('b2').value = c.bullets[2] || '';
+  document.getElementById('wFree').value = c.freeText || '';
+  document.getElementById('wPageNum').textContent = a.number;
+  document.getElementById('statusSel').value = a.status;
+  isDirty = false;
+}
+
+function onDraftChange() { 
+  isDirty = true; 
+  document.getElementById('wPageNum').textContent = document.getElementById('wNumber').value;
+}
+
+function getDraft() {
+  return {
+    uploadedImage: currentPptImg,
+    section: document.getElementById('wSection').value,
+    number: document.getElementById('wNumber').value,
+    type: document.getElementById('wType').value,
+    title: document.getElementById('wTitle').value,
+    dri: document.getElementById('wDri').value,
+    sl: document.getElementById('wSl').value,
+    governingMessage: document.getElementById('wGm').value,
+    bullets: [
+      document.getElementById('b0').value,
+      document.getElementById('b1').value,
+      document.getElementById('b2').value,
+    ],
+    freeText: document.getElementById('wFree').value,
+  };
+}
+
+function onStatusChange(val) {
+  const draft = getDraft();
+  saveAgendaData(draft, val, '상태 변경');
+}
+
+// ─── 안건 추가 및 삭제 ───
+function addNewAgenda() {
+  const newId = Date.now();
+  const a = {
+    id: newId,
+    number: '',
+    titleDraft: '새 안건',
+    section: '새 섹션',
+    type: '보고/공유',
+    status: '🔴',
+    content: { title:'', dri:'', sl:'', governingMessage:'', bullets:['','',''], freeText:'', uploadedImage: null },
+    history: [],
+    boardData: { tpl:'A', sub:{ko:'',en:''}, narrative:[], disc:[], appendix:[] }
+  };
+  agendas.push(a);
+  selectedId = newId;
+  persist();
+  renderSidebar();
+  loadWorkingForm();
+  if (viewMode === 'board') renderBoard();
+  showToast('새 안건이 추가되었습니다');
+  setTimeout(() => {
+    const titleEl = document.getElementById('wTitle');
+    if (titleEl) titleEl.focus();
+  }, 50);
+}
+
+function deleteAgenda() {
+  if (agendas.length <= 1) {
+    alert("최소 1개의 페이지는 남겨두어야 합니다.");
+    return;
+  }
+  if (!confirm("현재 페이지(안건)를 삭제하시겠습니까?")) return;
+  agendas = agendas.filter(a => a.id !== selectedId);
+  selectedId = agendas[0].id;
+  persist();
+  renderSidebar();
+  loadWorkingForm();
+  if (viewMode === 'board') renderBoard();
+  updateHistPanel();
+  showToast('페이지가 삭제되었습니다');
+}
+
+// ─── PPT 업로드 (모의 파싱) ───
+function handlePptUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = ''; 
+
+  showToast('AI가 장표 내용을 분석/추출하고 있습니다... ⏳');
+  
+  // 모의 대기시간 후 값 할당
+  setTimeout(() => {
+    // 텍스트 자동 채우기 모의
+    const isEng = file.name.toLowerCase().includes('en');
+    document.getElementById('wTitle').value = file.name.replace(/\.[^/.]+$/, "");
+    document.getElementById('wGm').value = isEng ? "AI has extracted the core message and visual charts from the uploaded deck." : "업로드된 장표의 핵심 결론과 시각 자료가 성공적으로 인식되었습니다.";
+    document.getElementById('b0').value = "다양한 형식의 텍스트 레이아웃 구조 분석 완료";
+    document.getElementById('b1').value = "차트 및 이미지 등 비정형 그래픽 요소 추출";
+    document.getElementById('b2').value = "화자와 문맥에 맞는 텍스트 맥락 자동 정리";
+    document.getElementById('wFree').value = "[AI 파싱 로그] \n- 원본 언어 감지: KOR\n- 차트 데이터셋 병합 성공 (우측 시각자료 참고)";
+
+    // 이미지 추출 (사용자가 올린 이미지이거나 모의 차트)
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        setExtractedImage(evt.target.result);
+        onDraftChange();
+        showToast('파싱 완료: 제목, 거버닝 메시지 및 이미지 추출이 적용되었습니다.');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // SVG dummy chart
+      const dummySvg = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect x="0" y="0" width="400" height="300" fill="#f3f4f6"/><rect x="50" y="200" width="40" height="80" fill="#534AB7"/><rect x="120" y="150" width="40" height="130" fill="#1D9E75"/><rect x="190" y="80" width="40" height="200" fill="#378ADD"/><rect x="260" y="180" width="40" height="100" fill="#EF9F27"/><text x="200" y="50" font-family="sans-serif" font-size="16" fill="#6b7280" font-weight="bold" text-anchor="middle">추출된 슬라이드 차트 데이터</text></svg>');
+      setExtractedImage(dummySvg);
+      onDraftChange();
+      showToast('파싱 완료: 제목, 거버닝 메시지 및 이미지 추출이 적용되었습니다.');
+    }
+  }, 1800);
+}
+
+function setExtractedImage(src) {
+  currentPptImg = src;
+  const box = document.getElementById('wExtractedBox');
+  const img = document.getElementById('wExtractedImg');
+  if (src) {
+    img.src = src;
+    box.style.display = 'flex';
+  } else {
+    img.src = '';
+    box.style.display = 'none';
+  }
+}
+
+function removeExtractedImg() {
+  setExtractedImage(null);
+  onDraftChange();
+}
+
+// ─── 저장 ───
+function saveAgenda(note) {
+  const draft = getDraft();
+  const status = document.getElementById('statusSel').value;
+  saveAgendaData(draft, status, note);
+}
+
+function saveAgendaData(draft, status, note) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const savedAt = `${now.getFullYear()}.${pad(now.getMonth()+1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  agendas = agendas.map(a => {
+    if (a.id !== selectedId) return a;
+    const snapshot = clone(a.content);
+    return {
+      ...a,
+      status,
+      section: draft.section,
+      number: draft.number,
+      type: draft.type,
+      titleDraft: draft.title || '제목 없음',
+      content: clone(draft),
+      history: [...a.history, { version: a.history.length+1, savedAt, note, snapshot }]
+    };
+  });
+  persist();
+  renderSidebar();
+  updateHistPanel();
+  isDirty = false;
+  showToast('저장 완료 ✓');
+}
+
+function submitAgenda() {
+  const draft = getDraft();
+  saveAgendaData(draft, '🟡', '제출');
+  document.getElementById('statusSel').value = '🟡';
+  showToast('제출 완료 ✓ 검토 요청됨');
+}
+
+// ─── 이사회 뷰 렌더 ───
+function renderBoard() {
+  const a = agendas.find(x => x.id === selectedId);
+  if (!a) return;
+
+  const hasContent = !!a.content.title;
+  document.getElementById('emptyBoard').style.display = hasContent ? 'none' : 'flex';
+  document.getElementById('boardContent').style.display = hasContent ? 'block' : 'none';
+  if (!hasContent) return;
+
+  const l = lang;
+  const bd = a.boardData || { tpl:'A', sub:{ko:'',en:''}, narrative:[], disc:[], appendix:[] };
+
+  // 이사회 뷰에 실무진 입력 내용 반영
+  const c = a.content;
+  const titleStr = c.title || a.titleDraft || '제목 없음';
+  const sectionStr = a.section || '분류 없음';
+  
+  const h_ko = c.governingMessage || (bd.h && bd.h.ko ? bd.h.ko : titleStr);
+  const h_en = c.governingMessage || (bd.h && bd.h.en ? bd.h.en : titleStr);
+  
+  const d_dri = c.dri || '';
+  const d_sl = c.sl || '';
+  const eye_str = `${a.number ? a.number+'. ' : ''}${titleStr} · DRI ${d_dri} | SL ${d_sl}`;
+
+  document.getElementById('bBc').innerHTML = `${sectionStr} <span>/ ${titleStr}</span>`;
+  document.getElementById('hEye').textContent = eye_str;
+  document.getElementById('hH').textContent = l === 'ko' ? h_ko : h_en;
+  document.getElementById('hSub').textContent = bd.sub && bd.sub[l] ? bd.sub[l] : '';
+  document.getElementById('wTitle').value = c.title || a.titleDraft || '';
+  
+  // 템플릿 처리 및 업로드된 장표 표시
+  const bPptOverlay = document.getElementById('bPptOverlay');
+  if (c.uploadedImage) {
+    document.getElementById('bPptImg').src = c.uploadedImage;
+    bPptOverlay.style.display = 'block';
+    // Hide standard templates if an uploaded image exists to focus on the authentic slide
+    document.querySelectorAll('.tpl').forEach(t => t.classList.remove('show'));
+  } else {
+    bPptOverlay.style.display = 'none';
+    document.getElementById('bPptImg').src = '';
+    document.getElementById('tplSel').value = bd.tpl || 'A';
+    switchTemplate(bd.tpl || 'A');
+  }
+
+  // 언어별 텍스트 전환
+  if (l === 'ko') {
+    document.getElementById('foldLabel').textContent = '사전 읽기 자료 (Pre-reading)';
+    document.getElementById('foldHint').textContent = '회의 전 읽기 권장 · 약 5분 소요';
+    document.getElementById('tabNar').innerHTML = 'Narrative <span class="tab-badge">필독</span>';
+    document.getElementById('tabApp').innerHTML = 'Appendix <span class="tab-badge">참고</span>';
+    document.getElementById('discH').textContent = '본 회의 논의 제안';
+    if (document.getElementById('kl0')) {
+      document.getElementById('kl0').textContent = '매출 (실적)';
+      document.getElementById('kl1').textContent = '손익 (실적)';
+      document.getElementById('th0').textContent = '항목';
+      document.getElementById('th1').textContent = "'25년 계획";
+      document.getElementById('th2').textContent = "'25년 실적";
+      document.getElementById('th3').textContent = '계획 대비';
+      document.getElementById('td00').textContent = '매출 합계';
+      document.getElementById('td01').textContent = '손익';
+    }
+  } else {
+    document.getElementById('foldLabel').textContent = 'Pre-Reading Materials';
+    document.getElementById('foldHint').textContent = 'Please read before the meeting · ~5 min';
+    document.getElementById('tabNar').innerHTML = 'Narrative <span class="tab-badge">Required</span>';
+    document.getElementById('tabApp').innerHTML = 'Appendix <span class="tab-badge">Reference</span>';
+    document.getElementById('discH').textContent = 'Suggested Discussion Topics';
+    if (document.getElementById('kl0')) {
+      document.getElementById('kl0').textContent = 'Revenue (Actual)';
+      document.getElementById('kl1').textContent = 'Op. Income (Actual)';
+      document.getElementById('th0').textContent = 'Item';
+      document.getElementById('th1').textContent = "FY'25 Plan";
+      document.getElementById('th2').textContent = "FY'25 Actual";
+      document.getElementById('th3').textContent = 'vs. Plan';
+      document.getElementById('td00').textContent = 'Total Revenue';
+      document.getElementById('td01').textContent = 'Operating Income';
+    }
+  }
+
+  // Narrative
+  let narHtml = '';
+  bd.narrative.forEach(s => {
+    narHtml += `<div class="ps${s.cur?' cur':''}">
+      <div class="ptag ${s.tag}">${s.tagTxt[l]}</div>
+      <div class="ph">${s.h[l]}</div>
+      <div class="pb"><p>${s.b[l]}</p></div>
+    </div>`;
+  });
+  document.getElementById('narrativeContent').innerHTML = narHtml;
+
+  // Disc
+  let dHtml = '';
+  bd.disc.forEach(q => { dHtml += `<div class="disc-q">${q[l]}</div>`; });
+  document.getElementById('discContent').innerHTML = dHtml;
+
+  // Appendix
+  let apHtml = '';
+  if (bd.appendix && bd.appendix.length > 0) {
+    bd.appendix.forEach(ap => {
+      apHtml += `<div class="ap-card"><div class="ap-t">${ap.t[l]}</div><div class="ap-b">${ap.b[l]}</div></div>`;
+    });
+  } else {
+    apHtml = '<div style="font-size:11px;color:#9ca3af;padding:12px">Appendix 자료 없음</div>';
+  }
+  document.getElementById('appendixContent').innerHTML = apHtml;
+
+  // 차트 초기화 (tplA일 때만)
+  if (bd.tpl === 'A' && !charts.rev) {
+    initCharts();
+  }
+}
+
+function initCharts() {
+  const lgnd0 = document.getElementById('lgnd0');
+  if (lgnd0 && !lgnd0.hasChildNodes()) {
+    revDS.forEach(d => {
+      const s = document.createElement('span');
+      s.className = 'lgnd-i';
+      s.innerHTML = `<span class="lgnd-sq" style="background:${d.backgroundColor}"></span>${d.label}`;
+      lgnd0.appendChild(s);
+    });
+  }
+  const lgnd1 = document.getElementById('lgnd1');
+  if (lgnd1 && !lgnd1.hasChildNodes()) {
+    dauDS.forEach(d => {
+      const s = document.createElement('span');
+      s.className = 'lgnd-i';
+      s.innerHTML = `<span class="lgnd-ln" style="background:${d.borderColor}"></span>${d.label}`;
+      lgnd1.appendChild(s);
+    });
+  }
+  if (document.getElementById('cRev') && !charts.rev) {
+    charts.rev = new Chart(document.getElementById('cRev'), {
+      type:'bar',
+      data:{ labels:["'23","'24","'25","'26P"], datasets:revDS },
+      options:{ ...baseOpts, scales:{ x:{...baseOpts.scales.x,stacked:true}, y:{...baseOpts.scales.y,stacked:true} } }
+    });
+  }
+  if (document.getElementById('cDau') && !charts.dau) {
+    charts.dau = new Chart(document.getElementById('cDau'), {
+      type:'line',
+      data:{ labels:["'23","'24","'25","'26P"], datasets:dauDS },
+      options:{ ...baseOpts, scales:{ x:baseOpts.scales.x, y:{ ...baseOpts.scales.y, ticks:{ ...baseOpts.scales.y.ticks, callback: v => v+'M' } } } }
+    });
+  }
+}
+
+// ─── 템플릿 전환 ───
+function switchTemplate(v) {
+  ['A','B','C','D'].forEach(t => {
+    const el = document.getElementById('tpl'+t);
+    if (el) el.classList.toggle('show', t === v);
+  });
+  if (v === 'A') setTimeout(initCharts, 100);
+}
+
+// ─── 탭 전환 ───
+function switchTab(e, id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
+  e.target.closest('.tab').classList.add('on');
+  document.getElementById('tc-'+id).classList.add('on');
+}
+
+// ─── 히스토리 ───
+function toggleHistory() {
+  showHist = !showHist;
+  const panel = document.getElementById('histPanel');
+  const btn = document.getElementById('histBtn');
+  panel.classList.toggle('open', showHist);
+  btn.classList.toggle('on', showHist);
+  updateHistPanel();
+}
+
+function updateHistPanel() {
+  const a = agendas.find(x => x.id === selectedId);
+  if (!a) return;
+  const badge = document.getElementById('histBadge');
+  badge.textContent = a.history.length;
+  badge.style.display = a.history.length > 0 ? 'inline' : 'none';
+  if (!showHist) return;
+  const list = document.getElementById('histList');
+  const sorted = [...a.history].reverse();
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="hist-empty">히스토리 없음</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(h => `
+    <div class="hist-item">
+      <div class="hist-meta"><span class="hist-ver">v${h.version}</span><span class="hist-time">${h.savedAt}</span></div>
+      <div class="hist-note">${h.note}</div>
+      ${h.snapshot && Object.keys(h.snapshot).length > 0
+        ? `<button class="hist-restore" onclick="restoreVersion(${JSON.stringify(h.snapshot).replace(/"/g,'&quot;')})">이 버전으로 되돌리기</button>`
+        : ''}
+    </div>
+  `).join('');
+}
+
+function restoreVersion(snapshot) {
+  const a = agendas.find(x => x.id === selectedId);
+  if (!a) return;
+  agendas = agendas.map(x => x.id === selectedId ? { ...x, content: clone(snapshot) } : x);
+  loadWorkingForm();
+  persist();
+  showToast('버전 복원 완료');
+}
+
+// ─── 초기화 ───
+agendas = loadAgendas();
+renderSidebar();
+loadWorkingForm();
+setView('working');
+</script>
+</body>
+</html>
